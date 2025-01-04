@@ -1,0 +1,7 @@
+spring:
+  data:
+    mongodb:
+      database: chat
+      host: localhost
+      port: 27017
+      auto-index-creation: true
