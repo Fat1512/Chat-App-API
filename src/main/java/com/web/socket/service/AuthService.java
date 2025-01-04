@@ -2,7 +2,7 @@ package com.web.socket.service;
 
 import com.web.socket.dto.LoginRequest;
 import com.web.socket.dto.RegisterRequest;
-import com.web.socket.dto.UserAuthResponse;
+import com.web.socket.dto.response.UserAuthResponse;
 
 public interface AuthService {
     UserAuthResponse login(LoginRequest loginRequest);

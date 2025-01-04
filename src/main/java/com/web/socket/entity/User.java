@@ -1,7 +1,9 @@
 package com.web.socket.entity;
 
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.DocumentReference;
@@ -11,11 +13,12 @@ import java.util.Date;
 import java.util.List;
 
 @Document
-@Data
+@Getter
+@Setter
 @Builder
 public class User {
     @Id
-    private String id;
+    private ObjectId id;
     private String name;
     private String username;
     private String password;
@@ -31,29 +34,29 @@ public class User {
     private List<UnreadMessage> unreadMessages = new ArrayList<>();
 
     @Builder.Default
-    @DocumentReference
     private List<Contact> contacts = new ArrayList<>();
 
     @Builder.Default
-    @DocumentReference
+    @DocumentReference(lazy = true)
     private List<ChatRoom> chatRooms = new ArrayList<>();
 
     @Builder.Default
-    @DocumentReference
+    @DocumentReference(lazy = true)
     private List<ChatRoom> pinnedChatRooms = new ArrayList<>();
 
 
+    @Setter @Getter
+    @Builder
+    public static class UnreadMessage {
+        @DocumentReference(lazy = true)
+        private Message message;
+        @DocumentReference(lazy = true)
+        private ChatRoom chatRoom;
+    }
+
+    @Getter
     public static class UserStatus {
         private boolean online = true;
         private Date lastSeen;
-    }
-
-    @Data
-    @Builder
-    public static class UnreadMessage {
-        @DocumentReference
-        private Message message;
-        @DocumentReference
-        private ChatRoom chatRoom;
     }
 }

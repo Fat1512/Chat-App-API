@@ -1,44 +1,45 @@
 package com.web.socket.entity;
 
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DocumentReference;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 
-@Data
+@Setter
+@Getter
 @Builder
 public class Message {
     @Id
     @Builder.Default
     private String id = new ObjectId().toString();
     private String messageType;
-    private boolean readStatus;
-    private boolean deliveredStatus;
+    private Boolean readStatus;
+    private Boolean deliveredStatus;
     private String content;
-    private Date timeSent;
+    private Double timeSent;
     private String imageUrl;
     private CallDetail callDetails;
     private VoiceDetail voiceDetail;
 
     @Builder.Default
-    @DocumentReference
+    @DocumentReference(lazy = true)
     private List<User> undeliveredMembers = new ArrayList<>();
 
     @Builder.Default
-    @DocumentReference
+    @DocumentReference(lazy = true)
     private List<User> unreadMembers = new ArrayList<>();
 
-    @DocumentReference
+    @DocumentReference(lazy = true)
     private User sender;
 
 
-    @Data
+    @Setter @Getter
     @Builder
     public static class VoiceDetail {
         @Id
@@ -48,7 +49,7 @@ public class Message {
         private String voiceNoteDuration;
     }
 
-    @Data
+    @Setter @Getter
     @Builder
     public static class CallDetail {
         @Id

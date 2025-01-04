@@ -3,8 +3,8 @@ package com.web.socket.service.Impl;
 
 import com.web.socket.dto.LoginRequest;
 import com.web.socket.dto.RegisterRequest;
-import com.web.socket.dto.TokenResponse;
-import com.web.socket.dto.UserAuthResponse;
+import com.web.socket.dto.response.TokenResponse;
+import com.web.socket.dto.response.UserAuthResponse;
 import com.web.socket.entity.User;
 import com.web.socket.repository.UserRepository;
 import com.web.socket.service.AuthService;
@@ -46,7 +46,7 @@ public class AuthServiceImpl implements AuthService {
         TokenResponse tokenResponse = jwtService.generateToken(userDetail);
 
         return UserAuthResponse.builder()
-                .id(user.getId())
+                .id(user.getId().toString())
                 .onlineStatus(true)
                 .name(user.getName())
                 .username(user.getUsername())

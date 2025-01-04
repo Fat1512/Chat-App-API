@@ -1,10 +1,12 @@
 package com.web.socket.dto;
 
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 @Builder
-@Data
+@Setter
+@Getter
 public class ExceptionResponse {
     private String error;
     private int status;

@@ -1,11 +1,13 @@
-package com.web.socket.dto;
+package com.web.socket.dto.response;
 
 
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 @Builder
-@Data
+@Setter
+@Getter
 public class UserAuthResponse {
     private String id;
     private Boolean onlineStatus;
