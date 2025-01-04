@@ -1,25 +1,20 @@
 package com.web.socket.entity;
 
+import lombok.Builder;
+import lombok.Data;
 import org.bson.types.ObjectId;
-import org.springframework.data.mongodb.core.mapping.MongoId;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.DocumentReference;
 
-import java.util.Date;
 
+@Data
+@Builder
 public class Contact {
-    @MongoId
-    private String id;
+    @Id
+    @Builder.Default
+    private String id = new ObjectId().toString();
     private String name;
-    private String chatRoomId;
 
-    public Contact() {
-        this.id = new ObjectId(new Date()).toString();
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public void setChatRoomId(String chatRoomId) {
-        this.chatRoomId = chatRoomId;
-    }
+    @DocumentReference
+    private ChatRoom chatRoom;
 }

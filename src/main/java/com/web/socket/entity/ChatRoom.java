@@ -1,34 +1,42 @@
 package com.web.socket.entity;
 
 
+import lombok.Builder;
+import lombok.Data;
+import org.bson.types.ObjectId;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.DocumentReference;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Document
+@Data
+@Builder
 public class ChatRoom {
+    @Id
+    private String Id;
     private RoomType roomType;
-    private List<String> members;
-    private List<MessageHistory> messageHistory;
+
+    @Builder.Default
+    private List<MessageHistory> messageHistory = new ArrayList<>();
+
+    @Builder.Default
+    @DocumentReference
+    private List<User> members = new ArrayList<>();
 
     public enum RoomType {
         PRIVATE, GROUP
     }
 
+    @Data
+    @Builder
     public static class MessageHistory {
-        private int day;
+        @Id
+        @Builder.Default
+        private String Id = new ObjectId().toString();
+        private String day;
         private List<Message> messages;
-    }
-
-    public void setRoomType(RoomType roomType) {
-        this.roomType = roomType;
-    }
-
-    public void setMembers(List<String> members) {
-        this.members = members;
-    }
-
-    public void setMessageHistory(List<MessageHistory> messageHistory) {
-        this.messageHistory = messageHistory;
     }
 }

@@ -1,5 +1,7 @@
 package com.web.socket;
 
+import com.web.socket.entity.Contact;
+import com.web.socket.entity.User;
 import com.web.socket.repository.TestRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -22,6 +24,26 @@ public class SocketApplication implements CommandLineRunner {
 
 	@Override
 	public void run(String... args) throws Exception {
+		Contact contact1 = Contact.builder().name("Phat").build();
+		Contact contact2 = Contact.builder().name("Le").build();
+
+	User user1 = User.builder()
+			.name("goc")
+			.username("gc")
+			.password("123").build();
+
+	User user2 = User.builder()
+			.name("goc")
+			.username("gc")
+			.password("123").build();
+	user1.getContacts().add(contact1);
+	user2.getContacts().add(contact2);
+//	mongoTemplate.save(user, "user");
+//	mongoTemplate.insert(user1);
+//	mongoTemplate.insert(user2);
+//	Query query = new Query();
+//	query.addCriteria(Criteria.where("_id").is("677894ceb42c6874cfee252c"));
+//	List<User> user1 = mongoTemplate.find(query, User.class);
 
 //		Contact contact = new Contact();
 //		contact.setName("hihi");
