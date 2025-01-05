@@ -16,5 +16,5 @@ public class UserAuthResponse {
     private String bio;
     private String avt;
     private Boolean isAuthenticated;
-    private TokenResponse tokenResponse;
+    private TokenDTO tokenDTO;
 }

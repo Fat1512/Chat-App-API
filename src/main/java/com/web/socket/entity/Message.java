@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.DocumentReference;
 
 import java.util.ArrayList;
@@ -14,13 +15,11 @@ import java.util.List;
 @Setter
 @Getter
 @Builder
+@Document
 public class Message {
     @Id
-    @Builder.Default
-    private String id = new ObjectId().toString();
+    private ObjectId id;
     private String messageType;
-    private Boolean readStatus;
-    private Boolean deliveredStatus;
     private String content;
     private Double timeSent;
     private String imageUrl;

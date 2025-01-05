@@ -6,7 +6,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class TokenResponse {
+public class TokenDTO {
     private String accessToken;
     private String refreshToken;
 //    @JsonIgnore

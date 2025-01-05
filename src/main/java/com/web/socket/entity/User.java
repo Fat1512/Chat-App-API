@@ -44,16 +44,6 @@ public class User {
     @DocumentReference(lazy = true)
     private List<ChatRoom> pinnedChatRooms = new ArrayList<>();
 
-
-    @Setter @Getter
-    @Builder
-    public static class UnreadMessage {
-        @DocumentReference(lazy = true)
-        private Message message;
-        @DocumentReference(lazy = true)
-        private ChatRoom chatRoom;
-    }
-
     @Getter
     public static class UserStatus {
         private boolean online = true;

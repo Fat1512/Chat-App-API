@@ -13,8 +13,6 @@ import java.util.List;
 public class MessageDTO {
     private String id;
     private String messageType;
-    private boolean readStatus;
-    private boolean deliveredStatus;
     private String content;
     private Double timeSent;
     private String imageUrl;

@@ -3,7 +3,7 @@ package com.web.socket.service.Impl;
 
 import com.web.socket.dto.LoginRequest;
 import com.web.socket.dto.RegisterRequest;
-import com.web.socket.dto.response.TokenResponse;
+import com.web.socket.dto.response.TokenDTO;
 import com.web.socket.dto.response.UserAuthResponse;
 import com.web.socket.entity.User;
 import com.web.socket.repository.UserRepository;
@@ -23,9 +23,9 @@ import org.springframework.stereotype.Service;
 public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
-    private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
 
     @Override
     public UserAuthResponse login(LoginRequest loginRequest) {
@@ -43,8 +43,7 @@ public class AuthServiceImpl implements AuthService {
 
         User user = userRepository.findByUsername(userDetail.getUsername()).get();
 
-        TokenResponse tokenResponse = jwtService.generateToken(userDetail);
-
+        TokenDTO tokenDTO = jwtService.generateToken(userDetail);
         return UserAuthResponse.builder()
                 .id(user.getId().toString())
                 .onlineStatus(true)
@@ -53,7 +52,7 @@ public class AuthServiceImpl implements AuthService {
                 .bio(user.getBio())
                 .avt(user.getAvatar())
                 .isAuthenticated(true)
-                .tokenResponse(tokenResponse)
+                .tokenDTO(tokenDTO)
                 .build();
     }
 

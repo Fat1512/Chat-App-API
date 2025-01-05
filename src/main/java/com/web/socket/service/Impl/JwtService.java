@@ -1,6 +1,6 @@
 package com.web.socket.service.Impl;
 
-import com.web.socket.dto.response.TokenResponse;
+import com.web.socket.dto.response.TokenDTO;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
@@ -71,7 +71,7 @@ public class JwtService {
                 .compact();
     }
 
-    public TokenResponse generateToken(UserDetails userDetails) {
+    public TokenDTO generateToken(UserDetails userDetails) {
         Date now = new Date();
 
         UUID uuid = UUID.randomUUID();
@@ -83,7 +83,7 @@ public class JwtService {
         String refreshToken = generateToken(extraClaims, userDetails, refreshTokenExpirationTime);
         String accessToken = generateToken(extraClaims, userDetails, accessTokenExpirationTime);
 
-        return TokenResponse.builder()
+        return TokenDTO.builder()
 //                .uuid(uuid.toString())
                 .refreshToken(refreshToken)
                 .accessToken(accessToken)

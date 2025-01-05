@@ -45,7 +45,7 @@ public class AuthController {
 
     @PatchMapping("/password")
     public ResponseEntity<APIResponse> changePassword(@RequestBody Map<String, String> params)  {
-//        TokenResponse tokenResponse =  authService.changePassword(params.get("newPassword")
+//        TokenDTO tokenDTO =  authService.changePassword(params.get("newPassword")
 //                , params.get("oldPassword")
 //                , Boolean.parseBoolean(params.get("isLogAllOut")));
         APIResponse apiResponse = APIResponse.builder()
@@ -70,7 +70,7 @@ public class AuthController {
 
     @PostMapping("/refresh-token")
     public ResponseEntity<APIResponse> refreshToken(@RequestBody Map<String, String> params) {
-//        TokenResponse tokenResponse = authService.refreshToken(params.get("refreshToken"));
+//        TokenDTO tokenDTO = authService.refreshToken(params.get("refreshToken"));
         APIResponse apiResponse = APIResponse.builder()
                 .status(HttpStatus.OK)
                 .message(APIResponseMessage.SUCCESSFULLY_CREATED.name())
