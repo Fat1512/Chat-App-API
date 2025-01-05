@@ -1,4 +1,4 @@
-package com.web.socket.dto;
+package com.web.socket.dto.request;
 
 
 import lombok.Builder;
@@ -11,3 +11,39 @@ import lombok.Setter;
 public class LoginRequest {
     private String username, password;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,10 +1,12 @@
 package com.web.socket.controller;
 
 
+import com.web.socket.dto.ChatRoomDetailDTO;
+import com.web.socket.dto.ChatRoomSummaryDTO;
+import com.web.socket.dto.MessageDTO;
+import com.web.socket.dto.MessageStatusDTO;
 import com.web.socket.dto.response.APIResponse;
-import com.web.socket.dto.response.ChatRoomSummaryDTO;
-import com.web.socket.dto.response.MessageDTO;
-import com.web.socket.dto.response.MessageStatusRequest;
+import com.web.socket.dto.response.*;
 import com.web.socket.service.ChatRoomService;
 import com.web.socket.utils.APIResponseMessage;
 import lombok.RequiredArgsConstructor;
@@ -32,24 +34,48 @@ public class ChatRoomController {
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
-    @PostMapping("/chatrooms/{chatRoomId}")
-    public ResponseEntity<APIResponse> pushMessageToChatRoom(@RequestBody MessageDTO messageDTO, @PathVariable String chatRoomId) {
-        chatRoomService.pushMessageToChatRoom(messageDTO, chatRoomId);
+    @GetMapping("/chatrooms/{chatRoomId}")
+    public ResponseEntity<APIResponse> getChatRoomDetail(@PathVariable String chatRoomId) {
+        ChatRoomDetailDTO chatRoomDetailDTO = chatRoomService.getChatRoomDetail(chatRoomId);
         APIResponse apiResponse = APIResponse.builder()
                 .status(HttpStatus.OK)
-                .message(APIResponseMessage.SUCCESSFULLY_DELETED.name())
-                .data(null)
+                .message(APIResponseMessage.SUCCESSFULLY_RETRIEVED.name())
+                .data(chatRoomDetailDTO)
                 .build();
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
-    @GetMapping("/chatrooms/{chatRoomId}/markAsRead")
-    public ResponseEntity<APIResponse> mark(@RequestBody MessageStatusRequest messageStatusRequest, @PathVariable String chatRoomId) {
-        chatRoomService.markReadMessage(messageStatusRequest.getMessagesId(), chatRoomId);
+    @PostMapping("/chatrooms/{chatRoomId}")
+    public ResponseEntity<APIResponse> pushMessageToChatRoom(@RequestBody MessageDTO messageDTO, @PathVariable String chatRoomId) {
+        MessageDTO messageResponse = chatRoomService.pushMessageToChatRoom(messageDTO, chatRoomId);
         APIResponse apiResponse = APIResponse.builder()
                 .status(HttpStatus.OK)
-                .message(APIResponseMessage.SUCCESSFULLY_DELETED.name())
-                .data(null)
+                .message(APIResponseMessage.SUCCESSFULLY_UPDATED.name())
+                .data(messageResponse)
+                .build();
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+    }
+
+    @PutMapping("/chatrooms/{chatRoomId}/markAsRead")
+    public ResponseEntity<APIResponse> markReadMessages(@RequestBody MessageStatusRequest messageStatusRequest, @PathVariable String chatRoomId) {
+        List<MessageStatusDTO> messageStatusDTOList = chatRoomService.markReadMessages(messageStatusRequest.getMessagesId(), chatRoomId);
+
+        APIResponse apiResponse = APIResponse.builder()
+                .status(HttpStatus.OK)
+                .message(APIResponseMessage.SUCCESSFULLY_UPDATED.name())
+                .data(messageStatusDTOList)
+                .build();
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+    }
+
+    @GetMapping("/chatrooms/{chatRoomId}/markAsDelivered")
+    public ResponseEntity<APIResponse> markDeliveredMessages(@RequestBody MessageStatusRequest messageStatusRequest, @PathVariable String chatRoomId) {
+        List<MessageStatusDTO> messageStatusDTOList = chatRoomService.markDeliveredMessages(messageStatusRequest.getMessagesId(), chatRoomId);
+
+        APIResponse apiResponse = APIResponse.builder()
+                .status(HttpStatus.OK)
+                .message(APIResponseMessage.SUCCESSFULLY_UPDATED.name())
+                .data(messageStatusDTOList)
                 .build();
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }

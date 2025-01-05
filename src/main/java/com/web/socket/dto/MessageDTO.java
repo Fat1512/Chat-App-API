@@ -1,4 +1,4 @@
-package com.web.socket.dto.response;
+package com.web.socket.dto;
 
 import com.web.socket.entity.Message;
 import lombok.Builder;

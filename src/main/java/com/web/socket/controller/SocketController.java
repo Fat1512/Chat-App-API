@@ -1,15 +1,19 @@
 package com.web.socket.controller;
-import com.web.socket.dto.response.APIResponse;
-import com.web.socket.dto.response.MessageDTO;
+
+import com.web.socket.dto.MessageDTO;
+import com.web.socket.dto.MessageStatusDTO;
+import com.web.socket.dto.response.MessageStatusRequest;
 import com.web.socket.service.ChatRoomService;
-import com.web.socket.utils.APIResponseMessage;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -18,6 +22,7 @@ public class SocketController {
     private final ChatRoomService chatRoomService;
 
     @MessageMapping("/chatRoom/{chatRoomId}/sendMessage")
+    @SendTo("/topic/chatRoom/{chatRoomId}/newMessages")
     public MessageDTO sendMessage(
             @DestinationVariable String chatRoomId,
             @Payload MessageDTO messageDTO) {
@@ -25,14 +30,22 @@ public class SocketController {
         return messageResponse;
     }
 
-    @MessageMapping("/chatRoom/{chatRoomId}/readMessage")
-    public ResponseEntity<APIResponse> readMessage(@DestinationVariable String chatRoomId) {
-//        chatRoomService.pushMessageToChatRoom(messageDTO, chatRoomId);
-        APIResponse apiResponse = APIResponse.builder()
-                .status(HttpStatus.OK)
-                .message(APIResponseMessage.SUCCESSFULLY_DELETED.name())
-                .data(null)
-                .build();
-        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+    @MessageMapping("/chatRoom/{chatRoomId}/markAsRead")
+    @SendTo("/topic/chatRoom/{chatRoomId}/message/status")
+    public List<MessageStatusDTO> markAsReadMessage(
+            @RequestBody MessageStatusRequest messageStatusRequest,
+            @PathVariable String chatRoomId) {
+        List<MessageStatusDTO> messageStatusDTOList = chatRoomService
+                .markReadMessages(messageStatusRequest.getMessagesId(), chatRoomId);
+        return messageStatusDTOList;
+    }
+
+    @MessageMapping("/chatRoom/{chatRoomId}/markAsDelivered")
+    @SendTo("/topic/chatRoom/{chatRoomId}/message/status")
+    public List<MessageStatusDTO> markAsDeliveredMessage(
+            @RequestBody MessageStatusRequest messageStatusRequest,
+            @PathVariable String chatRoomId) {
+        List<MessageStatusDTO> messageStatusDTOList = chatRoomService.markDeliveredMessages(messageStatusRequest.getMessagesId(), chatRoomId);
+        return messageStatusDTOList;
     }
 }

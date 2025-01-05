@@ -1,6 +1,6 @@
 package com.web.socket.service.Impl;
 
-import com.web.socket.dto.response.TokenDTO;
+import com.web.socket.dto.TokenDTO;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;

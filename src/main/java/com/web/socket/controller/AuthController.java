@@ -1,9 +1,10 @@
 package com.web.socket.controller;
 
 
-import com.web.socket.dto.*;
 import com.web.socket.dto.response.APIResponse;
-import com.web.socket.dto.response.UserAuthResponse;
+import com.web.socket.dto.request.LoginRequest;
+import com.web.socket.dto.request.RegisterRequest;
+import com.web.socket.dto.UserAuthDTO;
 import com.web.socket.service.AuthService;
 import com.web.socket.utils.APIResponseMessage;
 import lombok.RequiredArgsConstructor;
@@ -16,19 +17,20 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
+@CrossOrigin("http://localhost:5173")
 public class AuthController {
     private final AuthService authService;
 //    private final JwtService jwtService;
 
     @PostMapping("/login")
     public ResponseEntity<APIResponse> login(@RequestBody LoginRequest loginRequest) {
-        UserAuthResponse userAuthResponse = authService.login(loginRequest);
+        UserAuthDTO userAuthDTO = authService.login(loginRequest);
         APIResponse apiResponse = APIResponse.builder()
                 .status(HttpStatus.OK)
                 .message(APIResponseMessage.SUCCESSFULLY_LOGIN.name())
-                .data(userAuthResponse)
+                .data(userAuthDTO)
                 .build();
-        apiResponse.setData(userAuthResponse);
+        apiResponse.setData(userAuthDTO);
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 

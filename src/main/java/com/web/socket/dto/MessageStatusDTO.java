@@ -1,4 +1,4 @@
-package com.web.socket.dto.response;
+package com.web.socket.dto;
 
 
 import lombok.Builder;
@@ -15,4 +15,5 @@ public class MessageStatusDTO {
     private String messageId;
     private List<String> undeliveredMembers;
     private List<String> unreadMembers;
+    private String senderId;
 }
