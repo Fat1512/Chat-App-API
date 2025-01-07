@@ -6,7 +6,6 @@ import com.web.socket.dto.ChatRoomSummaryDTO;
 import com.web.socket.dto.MessageDTO;
 import com.web.socket.dto.MessageStatusDTO;
 import com.web.socket.dto.response.APIResponse;
-import com.web.socket.dto.response.*;
 import com.web.socket.service.ChatRoomService;
 import com.web.socket.utils.APIResponseMessage;
 import lombok.RequiredArgsConstructor;
@@ -57,8 +56,8 @@ public class ChatRoomController {
     }
 
     @PutMapping("/chatrooms/{chatRoomId}/markAsRead")
-    public ResponseEntity<APIResponse> markReadMessages(@RequestBody MessageStatusRequest messageStatusRequest, @PathVariable String chatRoomId) {
-        List<MessageStatusDTO> messageStatusDTOList = chatRoomService.markReadMessages(messageStatusRequest.getMessagesId(), chatRoomId);
+    public ResponseEntity<APIResponse> markReadMessages(@PathVariable String chatRoomId) {
+        List<MessageStatusDTO> messageStatusDTOList = chatRoomService.markReadMessages(chatRoomId);
 
         APIResponse apiResponse = APIResponse.builder()
                 .status(HttpStatus.OK)
@@ -69,8 +68,8 @@ public class ChatRoomController {
     }
 
     @GetMapping("/chatrooms/{chatRoomId}/markAsDelivered")
-    public ResponseEntity<APIResponse> markDeliveredMessages(@RequestBody MessageStatusRequest messageStatusRequest, @PathVariable String chatRoomId) {
-        List<MessageStatusDTO> messageStatusDTOList = chatRoomService.markDeliveredMessages(messageStatusRequest.getMessagesId(), chatRoomId);
+    public ResponseEntity<APIResponse> markDeliveredMessages(@PathVariable String chatRoomId) {
+        List<MessageStatusDTO> messageStatusDTOList = chatRoomService.markDeliveredMessages(chatRoomId);
 
         APIResponse apiResponse = APIResponse.builder()
                 .status(HttpStatus.OK)

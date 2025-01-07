@@ -8,4 +8,9 @@ public class MongoConfig {
 //    public MongoCustomConversions customConversions(Converter stringToObjectIdConverter) {
 //        return new MongoCustomConversions(Arrays.asList(stringToObjectIdConverter));
 //    }
+
+//    @Bean
+//    MongoTransactionManager transactionManager(MongoDatabaseFactory dbFactory) {
+//        return new MongoTransactionManager(dbFactory);
+//    }
 }

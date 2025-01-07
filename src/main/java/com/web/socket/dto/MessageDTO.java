@@ -19,7 +19,10 @@ public class MessageDTO {
     private Message.CallDetail callDetails;
     private Message.VoiceDetail voiceDetail;
 
+    //2 beneath list support for group chat
     private List<String> undeliveredMembersId;
     private List<String> unreadMembersId;
+    private Boolean readStatus;
+    private Boolean deliveredStatus;
     private String senderId;
 }

@@ -2,7 +2,6 @@ package com.web.socket.controller;
 
 import com.web.socket.dto.MessageDTO;
 import com.web.socket.dto.MessageStatusDTO;
-import com.web.socket.dto.response.MessageStatusRequest;
 import com.web.socket.service.ChatRoomService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -10,7 +9,6 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -33,19 +31,17 @@ public class SocketController {
     @MessageMapping("/chatRoom/{chatRoomId}/markAsRead")
     @SendTo("/topic/chatRoom/{chatRoomId}/message/status")
     public List<MessageStatusDTO> markAsReadMessage(
-            @RequestBody MessageStatusRequest messageStatusRequest,
             @PathVariable String chatRoomId) {
         List<MessageStatusDTO> messageStatusDTOList = chatRoomService
-                .markReadMessages(messageStatusRequest.getMessagesId(), chatRoomId);
+                .markReadMessages(chatRoomId);
         return messageStatusDTOList;
     }
 
     @MessageMapping("/chatRoom/{chatRoomId}/markAsDelivered")
     @SendTo("/topic/chatRoom/{chatRoomId}/message/status")
     public List<MessageStatusDTO> markAsDeliveredMessage(
-            @RequestBody MessageStatusRequest messageStatusRequest,
             @PathVariable String chatRoomId) {
-        List<MessageStatusDTO> messageStatusDTOList = chatRoomService.markDeliveredMessages(messageStatusRequest.getMessagesId(), chatRoomId);
+        List<MessageStatusDTO> messageStatusDTOList = chatRoomService.markDeliveredMessages(chatRoomId);
         return messageStatusDTOList;
     }
 }

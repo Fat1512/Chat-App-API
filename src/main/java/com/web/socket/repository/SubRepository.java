@@ -1,7 +1,7 @@
 package com.web.socket.repository;
 
-import com.web.socket.entity.Test;
+import com.web.socket.entity.Sub;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
-public interface TestRepository extends MongoRepository<Test, String> {
+public interface SubRepository extends MongoRepository<Sub, String> {
 }

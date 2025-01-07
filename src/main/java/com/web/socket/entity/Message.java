@@ -5,7 +5,6 @@ import lombok.Getter;
 import lombok.Setter;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.DocumentReference;
 
 import java.util.ArrayList;
@@ -15,10 +14,11 @@ import java.util.List;
 @Setter
 @Getter
 @Builder
-@Document
 public class Message {
+
     @Id
-    private ObjectId id;
+    @Builder.Default
+    private String id = new ObjectId().toString();
     private String messageType;
     private String content;
     private Double timeSent;
@@ -41,7 +41,6 @@ public class Message {
     @Setter @Getter
     @Builder
     public static class VoiceDetail {
-        @Id
         @Builder.Default
         private String id = new ObjectId().toString();
         private String voiceNoteUrl;
@@ -51,7 +50,6 @@ public class Message {
     @Setter @Getter
     @Builder
     public static class CallDetail {
-        @Id
         @Builder.Default
         private String id = new ObjectId().toString();
         private String callType;

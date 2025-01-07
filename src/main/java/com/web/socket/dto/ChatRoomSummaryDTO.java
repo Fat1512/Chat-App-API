@@ -5,8 +5,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.List;
-
 @Builder
 @Getter
 @Setter
@@ -14,6 +12,6 @@ public class ChatRoomSummaryDTO {
     private String chatRoomId;
     private RoomType roomType;
     private MessageDTO lastestMessage;
-    private List<MessageStatusDTO> unreadMessage;
+    private Integer totalUnreadMessages;
     private GeneralUserProfileDTO userProfile;
 }

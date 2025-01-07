@@ -3,7 +3,6 @@ package com.web.socket.entity;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
-import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.DocumentReference;
@@ -18,7 +17,7 @@ import java.util.List;
 @Builder
 public class User {
     @Id
-    private ObjectId id;
+    private String id;
     private String name;
     private String username;
     private String password;
@@ -32,6 +31,9 @@ public class User {
 
     @Builder.Default
     private List<UnreadMessage> unreadMessages = new ArrayList<>();
+
+    @Builder.Default
+    private List<UndeliveredMessage> undeliveredMessages = new ArrayList<>();
 
     @Builder.Default
     private List<Contact> contacts = new ArrayList<>();

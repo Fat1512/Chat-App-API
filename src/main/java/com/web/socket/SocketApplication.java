@@ -1,11 +1,16 @@
 package com.web.socket;
 
 //import com.web.socket.repository.TestRepository;
+
+import com.web.socket.entity.Test;
+import com.web.socket.repository.SubRepository;
+import com.web.socket.repository.TestRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.transaction.annotation.Transactional;
 
 
 @SpringBootApplication
@@ -13,12 +18,16 @@ public class SocketApplication implements CommandLineRunner {
 	public static void main(String[] args) {
 		SpringApplication.run(SocketApplication.class, args);
 	}
-//	@Autowired
-//	TestRepository repository;
+	@Autowired
+	TestRepository repository;
+
+	@Autowired
+	SubRepository subRepository;
 
 	@Autowired
 	MongoTemplate mongoTemplate;
 	@Override
+	@Transactional
 	public void run(String... args) throws Exception {
 //		Contact contact1 = Contact.builder().name("Phat").build();
 //		Contact contact2 = Contact.builder().name("Le").build();
@@ -103,6 +112,33 @@ public class SocketApplication implements CommandLineRunner {
 //		phat.getChatRooms().add(chatRoom);
 //		mongoTemplate.save(phat);
 //		mongoTemplate.save(trang);
+//		Test t1 = Test.builder().build();
+//		mongoTemplate.save(t1, "t1");
+
+//		Test t1 = Test.builder().build();
+//		Sub s = Sub.builder().name("sub").build();
+//
+//		subRepository.save(s);
+//		t1.setSub(s);
+//		repository.save(t1);
+
+//		subRepository.deleteById("677c8ce50302211b023b258b");
+//		repository.findById("677c8ce50302211b023b258c");
+
+
+//		Sub sub = subRepository.findById("677c8660f26e0545bdf20f52").get();
+//		sub.setName("New sub");
+//		subRepository.save(sub);
+//
+//		repository.findById("677c8660f26e0545bdf20f53");
+
+//		Sub sub = Sub.builder().name("subbb").build();
+//		Test test = Test.builder().sub(sub).build();
+//		subRepository.save(sub);
+//		repository.save(test);
+		Test tes = repository.findById("677c9326a8edf479396ea240").get();
+		tes.getSub().setName("b2o");
+		repository.save(tes);
 	}
 }
 

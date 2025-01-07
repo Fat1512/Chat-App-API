@@ -4,7 +4,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import org.bson.types.ObjectId;
-import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DocumentReference;
 
 
@@ -12,7 +11,6 @@ import org.springframework.data.mongodb.core.mapping.DocumentReference;
 @Getter
 @Builder
 public class Contact {
-    @Id
     @Builder.Default
     private String id = new ObjectId().toString();
     private String name;

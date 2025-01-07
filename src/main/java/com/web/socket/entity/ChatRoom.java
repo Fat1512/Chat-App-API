@@ -12,16 +12,14 @@ import org.springframework.data.mongodb.core.mapping.DocumentReference;
 import java.util.ArrayList;
 import java.util.List;
 
-@Document
 @Getter
 @Setter
 @Builder
+@Document
 public class ChatRoom {
-//    @Id
-//    private String Id;
-
     @Id
-    private ObjectId id;
+    private String id;
+
     private RoomType roomType;
 
     @Builder.Default

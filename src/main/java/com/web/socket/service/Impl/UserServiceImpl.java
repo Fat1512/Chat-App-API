@@ -8,7 +8,6 @@ import com.web.socket.repository.UserRepository;
 import com.web.socket.service.UserService;
 import com.web.socket.utils.SecurityUtils;
 import lombok.RequiredArgsConstructor;
-import org.bson.types.ObjectId;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -37,7 +36,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
     @Override
     public UserProfileDTO getProfile(String userId) {
-        User user = userRepository.findById(new ObjectId(userId)).orElseThrow(() -> new ResourceNotFoundException("user doesn't exist"));
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("user doesn't exist"));
         return UserProfileDTO
                 .builder()
                 .id(user.getId().toString())

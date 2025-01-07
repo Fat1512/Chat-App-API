@@ -11,6 +11,6 @@ public interface ChatRoomService {
     List<ChatRoomSummaryDTO> getChatRoomSummary();
     ChatRoomDetailDTO getChatRoomDetail(String chatRoomId);
     MessageDTO pushMessageToChatRoom(MessageDTO messageDTO, String chatRoomId);
-    List<MessageStatusDTO> markReadMessages(List<String> messagesId, String chatRoomId);
-    List<MessageStatusDTO> markDeliveredMessages(List<String> messagesId, String chatRoomId);
+    List<MessageStatusDTO> markReadMessages(String chatRoomId);
+    List<MessageStatusDTO> markDeliveredMessages(String chatRoomId);
 }
