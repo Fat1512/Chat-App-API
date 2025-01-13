@@ -20,8 +20,6 @@ import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -94,12 +92,11 @@ public class ChatRoomServiceImpl implements ChatRoomService {
     public ChatRoomDetailDTO getChatRoomDetail(String chatRoomId) {
         ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId).orElseThrow(() -> new ResourceNotFoundException("Invalid chatroom"));
 
-        Map<Double, List<MessageDTO>> messageHistory = chatRoom.getMessageHistory()
-                .stream()
-                .collect(Collectors.toMap(
-                        ChatRoom.MessageHistory::getDay,
-                        msgHistory -> msgHistory.getMessages()
-                                .stream()
+        List<ChatRoomDetailDTO.MessageHistoryDTO> messageHistory = chatRoom.getMessageHistory()
+                    .stream()
+                    .map(msgHistory -> {
+                        Double day = msgHistory.getDay();
+                        List<MessageDTO> messages = msgHistory.getMessages().stream()
                                 .map(msg -> MessageDTO.builder()
                                         .id(msg.getId())
                                         .messageType(msg.getMessageType())
@@ -112,7 +109,32 @@ public class ChatRoomServiceImpl implements ChatRoomService {
                                         .unreadMembersId(msg.getUnreadMembers().stream().map(User::getId).toList())
                                         .deliveredStatus(msg.getUndeliveredMembers().isEmpty())
                                         .readStatus(msg.getUnreadMembers().isEmpty())
-                                        .senderId(msg.getSender().getId()).build()).toList()));
+                                        .senderId(msg.getSender().getId()).build()).toList();
+                        return ChatRoomDetailDTO.MessageHistoryDTO
+                                .builder()
+                                .day(day)
+                                .messages(messages)
+                                .build();
+                    }).toList();
+//        Map<Double, List<MessageDTO>> messageHistory = chatRoom.getMessageHistory()
+//                .stream()
+//                .collect(Collectors.toMap(
+//                        ChatRoom.MessageHistory::getDay,
+//                        msgHistory -> msgHistory.getMessages()
+//                                .stream()
+//                                .map(msg -> MessageDTO.builder()
+//                                        .id(msg.getId())
+//                                        .messageType(msg.getMessageType())
+//                                        .content(msg.getContent())
+//                                        .timeSent(msg.getTimeSent())
+//                                        .imageUrl(msg.getImageUrl())
+//                                        .callDetails(msg.getCallDetails())
+//                                        .voiceDetail(msg.getVoiceDetail())
+//                                        .undeliveredMembersId(msg.getUndeliveredMembers().stream().map(User::getId).toList())
+//                                        .unreadMembersId(msg.getUnreadMembers().stream().map(User::getId).toList())
+//                                        .deliveredStatus(msg.getUndeliveredMembers().isEmpty())
+//                                        .readStatus(msg.getUnreadMembers().isEmpty())
+//                                        .senderId(msg.getSender().getId()).build()).toList()));
 
         return ChatRoomDetailDTO.builder()
                 .chatRoomId(chatRoom.getId())

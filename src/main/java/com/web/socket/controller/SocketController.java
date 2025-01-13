@@ -6,9 +6,9 @@ import com.web.socket.service.ChatRoomService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -23,7 +23,7 @@ public class SocketController {
     @SendTo("/topic/chatRoom/{chatRoomId}/newMessages")
     public MessageDTO sendMessage(
             @DestinationVariable String chatRoomId,
-            @Payload MessageDTO messageDTO) {
+            @RequestBody MessageDTO messageDTO) {
         MessageDTO messageResponse = chatRoomService.pushMessageToChatRoom(messageDTO, chatRoomId);
         return messageResponse;
     }

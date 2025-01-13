@@ -7,7 +7,6 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.List;
-import java.util.Map;
 
 @Builder
 @Setter
@@ -15,5 +14,13 @@ import java.util.Map;
 public class ChatRoomDetailDTO {
     private String chatRoomId;
     private RoomType roomType;
-    private Map<Double, List<MessageDTO>> messageHistory;
+    private List<MessageHistoryDTO> messageHistory;
+
+    @Getter
+    @Setter
+    @Builder
+    public static class MessageHistoryDTO {
+        private Double day;
+        List<MessageDTO> messages;
+    }
 }

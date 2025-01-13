@@ -1,28 +1,29 @@
 package com.web.socket;
 
-//import com.web.socket.repository.TestRepository;
+//import com.web.socket.repository.ParentRepository;
 
-import com.web.socket.entity.Test;
-import com.web.socket.repository.SubRepository;
-import com.web.socket.repository.TestRepository;
+import com.web.socket.repository.ChildRepository;
+import com.web.socket.repository.ParentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 
 
 @SpringBootApplication
 public class SocketApplication implements CommandLineRunner {
 	public static void main(String[] args) {
+		SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_INHERITABLETHREADLOCAL);
 		SpringApplication.run(SocketApplication.class, args);
 	}
 	@Autowired
-	TestRepository repository;
+	ParentRepository parentRepository;
 
 	@Autowired
-	SubRepository subRepository;
+	ChildRepository childRepository;
 
 	@Autowired
 	MongoTemplate mongoTemplate;
@@ -92,53 +93,63 @@ public class SocketApplication implements CommandLineRunner {
 //		User trang = mongoTemplate.findOne(query1, User.class);
 //
 //		Query query2 = new Query();
-//		query2.addCriteria(Criteria.where("_id").is("6778d7c991a9701a91d84303"));
-//		User phat = mongoTemplate.findOne(query2, User.class);
+//		query2.addCriteria(Criteria.where("_id").is("67815fa293f3be2e66dc8c84"));
+//		User minh = mongoTemplate.findOne(query2, User.class);
 //
 //		ChatRoom chatRoom = ChatRoom.builder()
-//				.roomType(ChatRoom.RoomType.PRIVATE).members(List.of(trang, phat))
+//				.roomType(RoomType.PRIVATE).members(List.of(trang, minh))
 //				.build();
 //		mongoTemplate.insert(chatRoom);
 //
 //		Contact contact = Contact
 //				.builder()
-//				.name("Phat cua trang")
-//				.user(phat)
+//				.name("Minh cua trang")
+//				.user(minh)
 //				.chatRoom(chatRoom)
 //				.build();
 //		trang.getContacts().add(contact);
 //
 //		trang.getChatRooms().add(chatRoom);
-//		phat.getChatRooms().add(chatRoom);
-//		mongoTemplate.save(phat);
+//		minh.getChatRooms().add(chatRoom);
+//		mongoTemplate.save(minh);
 //		mongoTemplate.save(trang);
-//		Test t1 = Test.builder().build();
+//		Parent t1 = Parent.builder().build();
 //		mongoTemplate.save(t1, "t1");
 
-//		Test t1 = Test.builder().build();
-//		Sub s = Sub.builder().name("sub").build();
+//		Parent t1 = Parent.builder().build();
+//		Child s = Child.builder().name("child").build();
 //
-//		subRepository.save(s);
-//		t1.setSub(s);
+//		childRepository.save(s);
+//		t1.setChild(s);
 //		repository.save(t1);
 
-//		subRepository.deleteById("677c8ce50302211b023b258b");
+//		childRepository.deleteById("677c8ce50302211b023b258b");
 //		repository.findById("677c8ce50302211b023b258c");
 
 
-//		Sub sub = subRepository.findById("677c8660f26e0545bdf20f52").get();
-//		sub.setName("New sub");
-//		subRepository.save(sub);
+//		Child child = childRepository.findById("677c8660f26e0545bdf20f52").get();
+//		child.setName("New child");
+//		childRepository.save(child);
 //
 //		repository.findById("677c8660f26e0545bdf20f53");
 
-//		Sub sub = Sub.builder().name("subbb").build();
-//		Test test = Test.builder().sub(sub).build();
-//		subRepository.save(sub);
+//		Child child = Child.builder().name("subbb").build();
+//		Parent test = Parent.builder().child(child).build();
+//		childRepository.save(child);
 //		repository.save(test);
-		Test tes = repository.findById("677c9326a8edf479396ea240").get();
-		tes.getSub().setName("b2o");
-		repository.save(tes);
+//		Parent tes = repository.findById("677c9326a8edf479396ea240").get();
+//		tes.getChild().setName("b2o");
+//		repository.save(tes);
+
+//		Child c = new Child();
+//		c.setUserName("username child");
+//		c.setGroupName("groupname child");
+//		parentRepository.save(c);
+
+//		Parent p = new Parent();
+//		p.setUserName("username child");
+//		parentRepository.save(p);
+//		Child child = childRepository.findById("67812cf6c804fa15bcd15ff0").orElse(null);
 	}
 }
 

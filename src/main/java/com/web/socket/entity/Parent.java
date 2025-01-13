@@ -1,18 +1,17 @@
 package com.web.socket.entity;
 
-
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-@Builder
-@Setter
 @Getter
-@Document
-public class Sub {
+@Setter
+@Builder
+@Document(collection="Parent")
+@AllArgsConstructor
+@NoArgsConstructor
+public class Parent {
     @Id
     private String id;
-    private String name;
+    private String userName;
 }

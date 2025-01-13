@@ -1,15 +1,15 @@
 package com.web.socket.dto;
 
 import com.web.socket.entity.Message;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.List;
 
 @Setter
 @Getter
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class MessageDTO {
     private String id;
     private String messageType;
