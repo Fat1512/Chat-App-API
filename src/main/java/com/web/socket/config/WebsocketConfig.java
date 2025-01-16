@@ -7,6 +7,8 @@ import com.web.socket.service.Impl.UserServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.event.EventListener;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.messaging.Message;
@@ -19,6 +21,7 @@ import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -27,6 +30,7 @@ import org.springframework.util.MimeTypeUtils;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
+import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
 import java.util.List;
 
@@ -35,22 +39,35 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 @Order(Ordered.HIGHEST_PRECEDENCE + 99)
+@Lazy
 public class WebsocketConfig implements WebSocketMessageBrokerConfigurer {
 
     private final JwtService jwtService;
     private final UserServiceImpl userService;
+    private final TaskScheduler messageBrokerTaskScheduler;
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
-        config.enableSimpleBroker("/topic");
+        config.enableSimpleBroker("/topic")
+                .setTaskScheduler(this.messageBrokerTaskScheduler)
+                .setHeartbeatValue(new long[] {0, 7000}); //outgoing - incoming
         config.setApplicationDestinationPrefixes("/app");
     }
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("ws")//connection establishment
-                .setAllowedOrigins("http://localhost:5173")
-                .withSockJS();
+                .setAllowedOrigins("http://localhost:5173");
+    }
+
+    @EventListener
+    public void handleSessionDisconnect(SessionDisconnectEvent event) {
+        String sessionId = event.getSessionId();
+        System.out.println("Disconnected session: " + sessionId);
+
+        // Notify other users or perform cleanup tasks
+        // Example: send user offline message
+//        messagingTemplate.convertAndSend("/topic/status", "User disconnected: " + sessionId);
     }
 
     @Override
@@ -62,7 +79,9 @@ public class WebsocketConfig implements WebSocketMessageBrokerConfigurer {
                 StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
 
                 log.info("Headers: {}", accessor);
-
+                if (StompCommand.DISCONNECT.equals(accessor.getCommand())) {
+                    log.info("ignore disconnect frame to avoid double disconnect: {}", message);
+                }
                 if (StompCommand.CONNECT.equals(accessor.getCommand())
                         || StompCommand.SUBSCRIBE.equals(accessor.getCommand())
                         || StompCommand.SEND.equals(accessor.getCommand())) {

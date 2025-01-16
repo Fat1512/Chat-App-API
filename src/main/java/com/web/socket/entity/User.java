@@ -1,14 +1,12 @@
 package com.web.socket.entity;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.DocumentReference;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 @Document
@@ -47,8 +45,12 @@ public class User {
     private List<ChatRoom> pinnedChatRooms = new ArrayList<>();
 
     @Getter
+    @Setter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class UserStatus {
         private boolean online = true;
-        private Date lastSeen;
+        private LocalDateTime lastSeen;
     }
 }

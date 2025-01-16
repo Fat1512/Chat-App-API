@@ -5,6 +5,8 @@ spring:
       host: localhost
       port: 27017
       auto-index-creation: true
+  main:
+    allow-circular-references: true
 app:
   token:
     secret: fe60f199041040557dc61317117ad37f10d2352cc8f3ccc32abb11056f6a864b
