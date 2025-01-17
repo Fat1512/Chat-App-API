@@ -1,7 +1,6 @@
 package com.web.socket.config;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.TaskExecutor;
@@ -11,13 +10,14 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.task.DelegatingSecurityContextAsyncTaskExecutor;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+import java.util.concurrent.ThreadPoolExecutor;
 
 @Configuration
 @RequiredArgsConstructor
@@ -32,21 +32,16 @@ public class AppConfig {
     @Bean
     public TaskExecutor getAsyncExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(20);
+        executor.setCorePoolSize(100);
         executor.setMaxPoolSize(1000);
-        executor.setWaitForTasksToCompleteOnShutdown(true);
+//        executor.setWaitForTasksToCompleteOnShutdown(true);
         executor.setThreadNamePrefix("Async-");
+        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+
         executor.initialize(); // this is important, otherwise an error is thrown
         return new DelegatingSecurityContextAsyncTaskExecutor(executor);
     }
-    @Bean
-    public MethodInvokingFactoryBean methodInvokingFactoryBean() {
-        MethodInvokingFactoryBean methodInvokingFactoryBean = new MethodInvokingFactoryBean();
-        methodInvokingFactoryBean.setTargetClass(SecurityContextHolder.class);
-        methodInvokingFactoryBean.setTargetMethod("setStrategyName");
-        methodInvokingFactoryBean.setArguments(new String[]{SecurityContextHolder.MODE_INHERITABLETHREADLOCAL});
-        return methodInvokingFactoryBean;
-    }
+
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider auth = new DaoAuthenticationProvider();

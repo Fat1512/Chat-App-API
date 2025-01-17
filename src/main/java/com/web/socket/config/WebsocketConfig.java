@@ -21,6 +21,8 @@ import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -43,12 +45,13 @@ public class WebsocketConfig implements WebSocketMessageBrokerConfigurer {
     private final JwtService jwtService;
     private final UserServiceImpl userService;
 //    private final TaskScheduler messageBrokerTaskScheduler;
+//    private final ThreadPoolTaskExecutor taskExecutor;
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
         config.enableSimpleBroker("/topic");
-//                .setTaskScheduler(this.messageBrokerTaskScheduler)
-//                .setHeartbeatValue(new long[] {0, 7000}); //outgoing - incoming
+//                .setTaskScheduler(this.messageBrokerTaskScheduler);
+//                .setHeartbeatValue(new long[] {0, 12000}); //outgoing - incoming
         config.setApplicationDestinationPrefixes("/app");
     }
 
