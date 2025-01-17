@@ -6,11 +6,12 @@ import com.web.socket.dto.MessageDTO;
 import com.web.socket.dto.MessageStatusDTO;
 
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 public interface ChatRoomService {
-    List<ChatRoomSummaryDTO> getChatRoomSummary();
+    List<ChatRoomSummaryDTO> getChatRoomSummary() ;
     ChatRoomDetailDTO getChatRoomDetail(String chatRoomId);
-    MessageDTO pushMessageToChatRoom(MessageDTO messageDTO, String chatRoomId);
-    List<MessageStatusDTO> markReadMessages(String chatRoomId);
-    List<MessageStatusDTO> markDeliveredMessages(String chatRoomId);
+    MessageDTO pushMessageToChatRoom(MessageDTO messageDTO, String chatRoomId) ;
+    List<MessageStatusDTO> markReadMessages(String chatRoomId) ;
+    List<MessageStatusDTO> markDeliveredMessages(String chatRoomId) ;
 }

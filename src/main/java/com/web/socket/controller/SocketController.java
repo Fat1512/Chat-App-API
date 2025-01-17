@@ -55,9 +55,8 @@ public class SocketController {
 
         MessageEventDTO messageEventDTO =
                 MessageEventDTO.builder()
-                .senderId(authenticatedUser.getId())
+                        .senderId(authenticatedUser.getId())
                         .mode("Typing...").build();
-
         return messageEventDTO;
     }
 

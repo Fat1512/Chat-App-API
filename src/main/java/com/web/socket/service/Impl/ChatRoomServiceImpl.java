@@ -20,6 +20,7 @@ import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 @Service
 @RequiredArgsConstructor
@@ -30,7 +31,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 
     @Override
     @Transactional
-    public List<ChatRoomSummaryDTO> getChatRoomSummary() {
+    public List<ChatRoomSummaryDTO> getChatRoomSummary()  {
         Authentication authentication = SecurityUtils.getAuthentication();
         String username = ((UserDetails) authentication.getPrincipal()).getUsername();
         User authenticatedUser = userRepository.findByUsername(username).orElseThrow(() -> new BadCredentialsException("Invalid credential"));
@@ -145,7 +146,8 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 
     @Override
     @Transactional
-    public MessageDTO pushMessageToChatRoom(MessageDTO messageDTO, String chatRoomId) {
+    public MessageDTO pushMessageToChatRoom(MessageDTO messageDTO, String chatRoomId)  {
+
         Authentication authentication = SecurityUtils.getAuthentication();
         String username = ((UserDetails) authentication.getPrincipal()).getUsername();
         User authenticatedUser = userRepository
@@ -223,7 +225,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 
     @Override
     @Transactional
-    public List<MessageStatusDTO> markDeliveredMessages(String chatRoomId) {
+    public List<MessageStatusDTO> markDeliveredMessages(String chatRoomId)  {
         Authentication authentication = SecurityUtils.getAuthentication();
         String username = ((UserDetails) authentication.getPrincipal()).getUsername();
         User authenticatedUser = userRepository.findByUsername(username)
@@ -267,7 +269,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
     }
 
     @Override
-    public List<MessageStatusDTO> markReadMessages(String chatRoomId) {
+    public List<MessageStatusDTO> markReadMessages(String chatRoomId)  {
         Authentication authentication = SecurityUtils.getAuthentication();
         String username = ((UserDetails) authentication.getPrincipal()).getUsername();
         User authenticatedUser = userRepository.findByUsername(username)

@@ -21,9 +21,7 @@ import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
-import org.springframework.scheduling.TaskScheduler;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.util.MimeTypeUtils;
@@ -44,13 +42,13 @@ public class WebsocketConfig implements WebSocketMessageBrokerConfigurer {
 
     private final JwtService jwtService;
     private final UserServiceImpl userService;
-    private final TaskScheduler messageBrokerTaskScheduler;
+//    private final TaskScheduler messageBrokerTaskScheduler;
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
-        config.enableSimpleBroker("/topic")
-                .setTaskScheduler(this.messageBrokerTaskScheduler)
-                .setHeartbeatValue(new long[] {0, 7000}); //outgoing - incoming
+        config.enableSimpleBroker("/topic");
+//                .setTaskScheduler(this.messageBrokerTaskScheduler)
+//                .setHeartbeatValue(new long[] {0, 7000}); //outgoing - incoming
         config.setApplicationDestinationPrefixes("/app");
     }
 
@@ -58,6 +56,9 @@ public class WebsocketConfig implements WebSocketMessageBrokerConfigurer {
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("ws")//connection establishment
                 .setAllowedOrigins("http://localhost:5173");
+        registry.addEndpoint("ws")
+                .setAllowedOrigins("http://localhost:5173")
+                .withSockJS();//connection establishment
     }
 
     @EventListener
@@ -72,7 +73,6 @@ public class WebsocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
-
         registration.interceptors(new ChannelInterceptor() {
             @Override
             public Message<?> preSend(Message<?> message, MessageChannel channel) {
@@ -88,17 +88,18 @@ public class WebsocketConfig implements WebSocketMessageBrokerConfigurer {
                     String token = accessor.getFirstNativeHeader("Authorization");
 
                     token = jwtService.extractToken(token);
-                    if(jwtService.validateToken(token)) {
+                    if (jwtService.validateToken(token)) {
                         String username = jwtService.extractUsername(token);
 //            Token redisToken = tokenService.get(jwtService.extractUuid(token));
                         UserDetails userDetails = userService.loadUserByUsername(username);
-                        if(userDetails != null
+                        if (userDetails != null
 //                    && redisToken != null
                         ) {
                             UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                            SecurityContext context = SecurityContextHolder.createEmptyContext();
-                            context.setAuthentication(authToken);
-                            SecurityContextHolder.setContext(context);
+                            SecurityContextHolder.getContext().setAuthentication(authToken);
+//                            SecurityContext context = SecurityContextHolder.createEmptyContext();
+//                            context.setAuthentication(authToken);
+//                            SecurityContextHolder.getContextHolderStrategy().setContext(context);
                             accessor.setUser(authToken);
                         }
                     }

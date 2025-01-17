@@ -9,6 +9,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.concurrent.ExecutionException;
+
 @RestController
 @CrossOrigin("http://localhost:5173")
 @RequestMapping("/api/v1/users")
@@ -27,7 +29,7 @@ public class UserController {
     }
 
     @GetMapping("/profile")
-    public ResponseEntity<?> getUserProfilee() {
+    public ResponseEntity<?> getUserProfilee()  {
         UserProfileDTO userProfileDTO = userService.getProfile();
         APIResponse apiResponse = APIResponse.builder()
                 .status(HttpStatus.OK)

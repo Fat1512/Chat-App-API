@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.concurrent.ExecutionException;
 
 @RequiredArgsConstructor
 @Service
@@ -52,7 +53,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
     @Override
-    public UserProfileDTO getProfile() {
+    public UserProfileDTO getProfile()  {
         Authentication authentication = SecurityUtils.getAuthentication();
         String username = ((UserDetails) authentication.getPrincipal()).getUsername();
         User user = userRepository.findByUsername(username).orElseThrow(() -> new ResourceNotFoundException("user doesn't exist"));
@@ -68,7 +69,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
     @Override
-    public OnlineStatusDTO switchToOnlineStatus() {
+    public OnlineStatusDTO switchToOnlineStatus()  {
         Authentication authentication = SecurityUtils.getAuthentication();
         String username = ((UserDetails) authentication.getPrincipal()).getUsername();
         User authenticatedUser = userRepository.findByUsername(username).orElseThrow(() -> new BadCredentialsException("Invalid credential"));
@@ -85,7 +86,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
     @Override
-    public OnlineStatusDTO switchToOfflineStatus() {
+    public OnlineStatusDTO switchToOfflineStatus()  {
         Authentication authentication = SecurityUtils.getAuthentication();
         String username = ((UserDetails) authentication.getPrincipal()).getUsername();
         User authenticatedUser = userRepository.findByUsername(username).orElseThrow(() -> new BadCredentialsException("Invalid credential"));

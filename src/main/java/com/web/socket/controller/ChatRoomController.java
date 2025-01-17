@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -23,7 +24,7 @@ public class ChatRoomController {
     private final ChatRoomService chatRoomService;
 
     @GetMapping("/chatrooms")
-    public ResponseEntity<APIResponse> getChatRoomSummary() {
+    public ResponseEntity<APIResponse> getChatRoomSummary()  {
         List<ChatRoomSummaryDTO> chatRoomSummaryList = chatRoomService.getChatRoomSummary();
         APIResponse apiResponse = APIResponse.builder()
                 .status(HttpStatus.OK)
@@ -45,7 +46,7 @@ public class ChatRoomController {
     }
 
     @PostMapping("/chatrooms/{chatRoomId}")
-    public ResponseEntity<APIResponse> pushMessageToChatRoom(@RequestBody MessageDTO messageDTO, @PathVariable String chatRoomId) {
+    public ResponseEntity<APIResponse> pushMessageToChatRoom(@RequestBody MessageDTO messageDTO, @PathVariable String chatRoomId)  {
         MessageDTO messageResponse = chatRoomService.pushMessageToChatRoom(messageDTO, chatRoomId);
         APIResponse apiResponse = APIResponse.builder()
                 .status(HttpStatus.OK)
@@ -56,7 +57,7 @@ public class ChatRoomController {
     }
 
     @PutMapping("/chatrooms/{chatRoomId}/markAsRead")
-    public ResponseEntity<APIResponse> markReadMessages(@PathVariable String chatRoomId) {
+    public ResponseEntity<APIResponse> markReadMessages(@PathVariable String chatRoomId)  {
         List<MessageStatusDTO> messageStatusDTOList = chatRoomService.markReadMessages(chatRoomId);
 
         APIResponse apiResponse = APIResponse.builder()
@@ -68,7 +69,7 @@ public class ChatRoomController {
     }
 
     @GetMapping("/chatrooms/{chatRoomId}/markAsDelivered")
-    public ResponseEntity<APIResponse> markDeliveredMessages(@PathVariable String chatRoomId) {
+    public ResponseEntity<APIResponse> markDeliveredMessages(@PathVariable String chatRoomId)  {
         List<MessageStatusDTO> messageStatusDTOList = chatRoomService.markDeliveredMessages(chatRoomId);
 
         APIResponse apiResponse = APIResponse.builder()
