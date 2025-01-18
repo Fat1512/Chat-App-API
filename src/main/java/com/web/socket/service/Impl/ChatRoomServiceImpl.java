@@ -9,6 +9,8 @@ import com.web.socket.repository.UserRepository;
 import com.web.socket.service.ChatRoomService;
 import com.web.socket.utils.SecurityUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -20,7 +22,6 @@ import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.Comparator;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 @Service
 @RequiredArgsConstructor
@@ -28,7 +29,8 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 
     private final ChatRoomRepository chatRoomRepository;
     private final UserRepository userRepository;
-
+    private final SimpMessagingTemplate simpMessagingTemplate;
+    private final MongoTemplate mongoTemplate;
     @Override
     @Transactional
     public List<ChatRoomSummaryDTO> getChatRoomSummary()  {
@@ -308,6 +310,49 @@ public class ChatRoomServiceImpl implements ChatRoomService {
         chatRoomRepository.save(chatRoom);
         userRepository.save(authenticatedUser);
         return messageStatusList;
+    }
+
+    @Override
+    @Transactional
+    public void broadcastOfflineStatus() {
+        Authentication authentication = SecurityUtils.getAuthentication();
+        String username = ((UserDetails) authentication.getPrincipal()).getUsername();
+        User authenticatedUser = userRepository.findByUsername(username).orElseThrow(() -> new BadCredentialsException("Invalid credential"));
+        authenticatedUser.setStatus(User.UserStatus
+                .builder()
+                .online(false)
+                .lastSeen((double) Instant.now().toEpochMilli())
+                .build());
+        mongoTemplate.save(authenticatedUser, "user");
+        authenticatedUser.getChatRooms().stream().forEach(chatRoom -> {
+            simpMessagingTemplate.convertAndSend("/topic/"+chatRoom.getId()+"onlineStatus",
+                    OnlineStatusDTO
+                            .builder()
+                            .status(authenticatedUser.getStatus().isOnline())
+                            .lastSeen(authenticatedUser.getStatus().getLastSeen())
+                            .build());
+        });
+    }
+
+    @Override
+    @Transactional
+    public void broadcastOnlineStatus() {
+        Authentication authentication = SecurityUtils.getAuthentication();
+        String username = ((UserDetails) authentication.getPrincipal()).getUsername();
+        User authenticatedUser = userRepository.findByUsername(username).orElseThrow(() -> new BadCredentialsException("Invalid credential"));
+        authenticatedUser.setStatus(User.UserStatus
+                .builder()
+                .online(true)
+                .build());
+        mongoTemplate.save(authenticatedUser, "user");
+        authenticatedUser.getChatRooms().stream().forEach(chatRoom -> {
+            simpMessagingTemplate.convertAndSend("/topic/"+chatRoom.getId()+"onlineStatus",
+                    OnlineStatusDTO
+                            .builder()
+                            .status(authenticatedUser.getStatus().isOnline())
+                            .lastSeen(authenticatedUser.getStatus().getLastSeen())
+                            .build());
+        });
     }
 }
 

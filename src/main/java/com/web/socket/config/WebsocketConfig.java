@@ -21,8 +21,6 @@ import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
-import org.springframework.scheduling.TaskScheduler;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -30,6 +28,7 @@ import org.springframework.util.MimeTypeUtils;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
+import org.springframework.web.socket.config.annotation.WebSocketTransportRegistration;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
 import java.util.List;
@@ -50,7 +49,7 @@ public class WebsocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
         config.enableSimpleBroker("/topic");
-//                .setTaskScheduler(this.messageBrokerTaskScheduler);
+//                .setTaskScheduler(this.messageBrokerTaskSche  duler);
 //                .setHeartbeatValue(new long[] {0, 12000}); //outgoing - incoming
         config.setApplicationDestinationPrefixes("/app");
     }
@@ -62,6 +61,13 @@ public class WebsocketConfig implements WebSocketMessageBrokerConfigurer {
         registry.addEndpoint("ws")
                 .setAllowedOrigins("http://localhost:5173")
                 .withSockJS();//connection establishment
+    }
+
+    @Override
+    public void configureWebSocketTransport(WebSocketTransportRegistration registry) {
+        registry.setMessageSizeLimit(100240 * 10240);
+        registry.setSendBufferSizeLimit(100240 * 10240);
+        registry.setSendTimeLimit(20000);
     }
 
     @EventListener
@@ -76,6 +82,9 @@ public class WebsocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
+        registration.taskExecutor().corePoolSize(10);
+        registration.taskExecutor().corePoolSize(20);
+
         registration.interceptors(new ChannelInterceptor() {
             @Override
             public Message<?> preSend(Message<?> message, MessageChannel channel) {
@@ -83,6 +92,7 @@ public class WebsocketConfig implements WebSocketMessageBrokerConfigurer {
 
                 log.info("Headers: {}", accessor);
                 if (StompCommand.DISCONNECT.equals(accessor.getCommand())) {
+//        messagingTemplate.convertAndSend("/topic/status", "User disconnected: " + sessionId);
                     log.info("ignore disconnect frame to avoid double disconnect: {}", message);
                 }
                 if (StompCommand.CONNECT.equals(accessor.getCommand())

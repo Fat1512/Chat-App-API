@@ -3,11 +3,9 @@ package com.web.socket.controller;
 import com.web.socket.dto.MessageDTO;
 import com.web.socket.dto.MessageEventDTO;
 import com.web.socket.dto.MessageStatusDTO;
-import com.web.socket.dto.OnlineStatusDTO;
 import com.web.socket.entity.User;
 import com.web.socket.repository.UserRepository;
 import com.web.socket.service.ChatRoomService;
-import com.web.socket.service.UserService;
 import com.web.socket.utils.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +28,6 @@ public class SocketController {
 
     private final ChatRoomService chatRoomService;
     private final UserRepository userRepository;
-    private final UserService userService;
 
     @MessageMapping("/test")
     public void test() {
@@ -60,19 +57,15 @@ public class SocketController {
         return messageEventDTO;
     }
 
-    @MessageMapping("/chatRoom/{chatRoomId}/online")
-    @SendTo("/topic/chatRoom/{chatRoomId}/online")
-    public OnlineStatusDTO switchToOnlineStatus() {
-        OnlineStatusDTO onlineStatusDTO = userService.switchToOnlineStatus();
-        return onlineStatusDTO;
-    }
-
-    @MessageMapping("/chatRoom/{chatRoomId}/offline")
-    @SendTo("/topic/chatRoom/{chatRoomId}/offline")
-    public OnlineStatusDTO switchToOfflineStatus() {
-        OnlineStatusDTO onlineStatusDTO = userService.switchToOnlineStatus();
-        return onlineStatusDTO;
-    }
+//    @MessageMapping("/disconnect")
+//    public void disconnect() {
+//        chatRoomService.broadcastOfflineStatus();
+//    }
+//
+//    @MessageMapping("/connect")
+//    public void connect() {
+//        chatRoomService.broadcastOnlineStatus();
+//    }
 
     @MessageMapping("/chatRoom/{chatRoomId}/markAsRead")
     @SendTo("/topic/chatRoom/{chatRoomId}/message/status")

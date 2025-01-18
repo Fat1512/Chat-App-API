@@ -6,7 +6,6 @@ import com.web.socket.dto.MessageDTO;
 import com.web.socket.dto.MessageStatusDTO;
 
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 public interface ChatRoomService {
     List<ChatRoomSummaryDTO> getChatRoomSummary() ;
@@ -14,4 +13,6 @@ public interface ChatRoomService {
     MessageDTO pushMessageToChatRoom(MessageDTO messageDTO, String chatRoomId) ;
     List<MessageStatusDTO> markReadMessages(String chatRoomId) ;
     List<MessageStatusDTO> markDeliveredMessages(String chatRoomId) ;
+    void broadcastOfflineStatus();
+    void broadcastOnlineStatus();
 }

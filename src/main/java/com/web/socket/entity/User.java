@@ -4,8 +4,8 @@ import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.DocumentReference;
+import org.springframework.data.mongodb.core.mapping.Field;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,9 +16,13 @@ import java.util.List;
 public class User {
     @Id
     private String id;
+    @Field
     private String name;
+    @Field
     private String username;
+    @Field
     private String password;
+    @Field
     private UserStatus status;
 
     @Builder.Default
@@ -51,6 +55,6 @@ public class User {
     @AllArgsConstructor
     public static class UserStatus {
         private boolean online = true;
-        private LocalDateTime lastSeen;
+        private Double lastSeen;
     }
 }

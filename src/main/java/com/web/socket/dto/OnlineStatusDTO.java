@@ -14,5 +14,5 @@ public class OnlineStatusDTO {
     private String chatRoomId;
     private String senderId;
     private Boolean status;
-    private LocalDateTime lastSeen;
+    private Double lastSeen;
 }

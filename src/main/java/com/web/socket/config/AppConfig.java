@@ -3,8 +3,6 @@ package com.web.socket.config;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.task.TaskExecutor;
-import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -13,7 +11,6 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.task.DelegatingSecurityContextAsyncTaskExecutor;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -21,7 +18,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 @Configuration
 @RequiredArgsConstructor
-@EnableAsync
 public class AppConfig {
     private final UserDetailsService userDetailsService;
 
@@ -29,17 +25,20 @@ public class AppConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-    @Bean
-    public TaskExecutor getAsyncExecutor() {
+
+
+    @Bean(name="taskExecutor")
+    public ThreadPoolTaskExecutor getThreadExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(100);
-        executor.setMaxPoolSize(1000);
+        executor.setCorePoolSize(10);
+        executor.setMaxPoolSize(20);
+        executor.setQueueCapacity(100);
 //        executor.setWaitForTasksToCompleteOnShutdown(true);
         executor.setThreadNamePrefix("Async-");
         executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
-
+        executor.setTaskDecorator(new ContextCopyingDecorator());
         executor.initialize(); // this is important, otherwise an error is thrown
-        return new DelegatingSecurityContextAsyncTaskExecutor(executor);
+        return executor;
     }
 
     @Bean
@@ -50,17 +49,15 @@ public class AppConfig {
         return auth;
     }
 
-//    @Bean("threadPoolTaskExecutor")
-//    public TaskExecutor getAsyncExecutor() {
-//        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-//        executor.setCorePoolSize(20);
-//        executor.setMaxPoolSize(1000);
-//        executor.setWaitForTasksToCompleteOnShutdown(true);
-//        executor.setThreadNamePrefix("Async-");
-//        executor.initialize(); // this is important, otherwise an error is thrown
-//        return new DelegatingSecurityContextAsyncTaskExecutor(executor);
+//    @Primary
+//    @Bean
+//    public MethodInvokingFactoryBean methodInvokingFactoryBean() {
+//        MethodInvokingFactoryBean methodInvokingFactoryBean = new MethodInvokingFactoryBean();
+//        methodInvokingFactoryBean.setTargetClass(SecurityContextHolder.class);
+//        methodInvokingFactoryBean.setTargetMethod("setStrategyName");
+//        methodInvokingFactoryBean.setArguments(new String[]{SecurityContextHolder.MODE_INHERITABLETHREADLOCAL});
+//        return methodInvokingFactoryBean;
 //    }
-
     @Bean
     public WebMvcConfigurer corsConfigurer() {
         return new WebMvcConfigurer() {

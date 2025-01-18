@@ -52,7 +52,6 @@ public class SecurityConfig {
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(CORSFilter, ChannelProcessingFilter.class);
         http.cors(AbstractHttpConfigurer::disable);
-
         http.csrf(AbstractHttpConfigurer::disable)
             .authorizeHttpRequests(request -> {
             request.requestMatchers("/api/v1/auth/**", "/ws/**").permitAll();
