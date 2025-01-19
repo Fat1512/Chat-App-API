@@ -15,7 +15,6 @@ import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -57,29 +56,29 @@ public class SocketController {
         return messageEventDTO;
     }
 
-//    @MessageMapping("/disconnect")
-//    public void disconnect() {
-//        chatRoomService.broadcastOfflineStatus();
-//    }
-//
-//    @MessageMapping("/connect")
-//    public void connect() {
-//        chatRoomService.broadcastOnlineStatus();
-//    }
+    @MessageMapping("/disconnect")
+    public void disconnect() {
+        chatRoomService.broadcastOfflineStatus();
+    }
+
+    @MessageMapping("/connect")
+    public void connect() {
+        chatRoomService.broadcastOnlineStatus();
+    }
 
     @MessageMapping("/chatRoom/{chatRoomId}/markAsRead")
-    @SendTo("/topic/chatRoom/{chatRoomId}/message/status")
+    @SendTo("/topic/chatRoom/{chatRoomId}/message/readStatus")
     public List<MessageStatusDTO> markAsReadMessage(
-            @PathVariable String chatRoomId) {
+            @DestinationVariable String chatRoomId) {
         List<MessageStatusDTO> messageStatusDTOList = chatRoomService
                 .markReadMessages(chatRoomId);
         return messageStatusDTOList;
     }
 
     @MessageMapping("/chatRoom/{chatRoomId}/markAsDelivered")
-    @SendTo("/topic/chatRoom/{chatRoomId}/message/status")
+    @SendTo("/topic/chatRoom/{chatRoomId}/message/deliveredStatus")
     public List<MessageStatusDTO> markAsDeliveredMessage(
-            @PathVariable String chatRoomId) {
+            @DestinationVariable String chatRoomId) {
         List<MessageStatusDTO> messageStatusDTOList = chatRoomService.markDeliveredMessages(chatRoomId);
         return messageStatusDTOList;
     }
