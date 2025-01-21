@@ -1,9 +1,6 @@
 package com.web.socket.service;
 
-import com.web.socket.dto.ChatRoomDetailDTO;
-import com.web.socket.dto.ChatRoomSummaryDTO;
-import com.web.socket.dto.MessageDTO;
-import com.web.socket.dto.MessageStatusDTO;
+import com.web.socket.dto.*;
 
 import java.util.List;
 
@@ -15,4 +12,5 @@ public interface ChatRoomService {
     List<MessageStatusDTO> markDeliveredMessages(String chatRoomId) ;
     void broadcastOfflineStatus();
     void broadcastOnlineStatus();
+    void createGroup(GroupCreationRequest groupCreationRequest);
 }

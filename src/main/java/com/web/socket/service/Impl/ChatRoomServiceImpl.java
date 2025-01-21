@@ -41,113 +41,120 @@ public class ChatRoomServiceImpl implements ChatRoomService {
         String username = ((UserDetails) authentication.getPrincipal()).getUsername();
         User authenticatedUser = userRepository.findByUsername(username).orElseThrow(() -> new BadCredentialsException("Invalid credential"));
 
-        return authenticatedUser.getChatRooms()
-                .stream()
-                .filter(chatRoom -> !chatRoom.getMessageHistory().isEmpty())
-                .map(chatRoom -> {
-                    //Get the lastest message per chatroom
-                    Message message = chatRoom.getMessageHistory()
-                            .stream()
-                            .flatMap(history -> history.getMessages().stream())
-                            .max(Comparator.comparing(Message::getTimeSent))
-                            .get();
+        return authenticatedUser.getChatRooms().stream().filter(chatRoom -> !chatRoom.getMessageHistory().isEmpty() ||
+                chatRoom.getRoomType().toString().equals("GROUP")).map(chatRoom -> {
+            //Get the lastest message per chatroom
+            Message message = chatRoom.getMessageHistory()
+                    .stream()
+                    .flatMap(history -> history.getMessages().stream())
+                    .max(Comparator.comparing(Message::getTimeSent))
+                    .orElse(null);
 
-                    Boolean deliveredStatus = message.getUndeliveredMembers().isEmpty();
-                    Boolean readStatus = message.getUnreadMembers().isEmpty();
+            //Newly created group chat doesn't have value but should be retrieved
+            MessageDTO lastestMessage = new MessageDTO();
+            Integer TotalUnreadMessages = 0;
+            if (message != null) {
 
-                    User sender = message.getSender();
-                    MessageDTO lastestMessage = MessageDTO
+                Boolean deliveredStatus = message.getUndeliveredMembers().isEmpty();
+                Boolean readStatus = message.getUnreadMembers().isEmpty();
+
+                lastestMessage = MessageDTO.builder()
+                        .id(message.getId())
+                        .messageType(message.getMessageType())
+                        .content(message.getContent())
+                        .timeSent(message.getTimeSent())
+                        .imageUrl(message.getImageUrl())
+                        .callDetails(message.getCallDetails())
+                        .voiceDetail(message.getVoiceDetail())
+                        .undeliveredMembersId(message.getUndeliveredMembers().stream().map(User::getId).toList())
+                        .unreadMembersId(message.getUnreadMembers().stream().map(User::getId).toList())
+                        .deliveredStatus(deliveredStatus)
+                        .readStatus(readStatus)
+                        .senderId(message.getSender().getId())
+                        .build();
+
+                TotalUnreadMessages = Math.toIntExact(authenticatedUser.getUnreadMessages().stream()
+                        .filter(msg -> msg.getChatRoomId().equals(chatRoom.getId())).count());
+            }
+
+            Object groupInfo = switch (chatRoom.getRoomType().toString()) {
+                case "PRIVATE" -> {
+                    User userFriend = chatRoom.getMembers().stream().filter(member -> !member.getId().equals(authenticatedUser.getId()))
+                            .findFirst()
+                            .orElseThrow(() -> new ResourceNotFoundException("Not found"));
+                    yield SingleProfileDTO
                             .builder()
-                            .id(message.getId())
-                            .messageType(message.getMessageType())
-                            .content(message.getContent()).timeSent(message.getTimeSent())
-                            .imageUrl(message.getImageUrl())
-                            .callDetails(message.getCallDetails())
-                            .voiceDetail(message.getVoiceDetail())
-                            .undeliveredMembersId(message.getUndeliveredMembers().stream().map(User::getId).toList())
-                            .unreadMembersId(message.getUnreadMembers().stream().map(User::getId).toList())
-                            .deliveredStatus(deliveredStatus)
-                            .readStatus(readStatus)
-                            .senderId(sender.getId()).build();
-
-                    Integer TotalUnreadMessages = Math.toIntExact(authenticatedUser.getUnreadMessages()
-                            .stream()
-                            .filter(msg -> msg.getChatRoomId().equals(chatRoom.getId())).count());
-                    User userFriend = chatRoom.getMembers()
-                            .stream()
-                            .filter(member -> !member.getId().equals(authenticatedUser.getId())).findFirst().get();
-                    GeneralUserProfileDTO userProfile = GeneralUserProfileDTO
-                            .builder()
+                            .roomType("PRIVATE")
                             .id(userFriend.getId())
                             .name(userFriend.getName())
-                            .username(userFriend.getUsername()).status(userFriend.getStatus())
+                            .username(userFriend.getUsername())
+                            .status(userFriend.getStatus())
                             .bio(userFriend.getBio())
                             .avatar(userFriend.getAvatar())
                             .build();
-
-                    return ChatRoomSummaryDTO
-                            .builder()
-                            .chatRoomId(chatRoom.getId())
-                            .roomType(chatRoom.getRoomType())
-                            .totalUnreadMessages(TotalUnreadMessages)
-                            .lastestMessage(lastestMessage)
-                            .userProfile(userProfile)
-                            .build();
-                }).toList();
+                }
+                case "GROUP" -> GroupProfileDTO
+                        .builder()
+                        .roomType("GROUP")
+                        .name(chatRoom.getGroupName())
+                        .avatar(chatRoom.getGroupAvatar())
+                        .build();
+                default -> null;
+            };
+            return ChatRoomSummaryDTO
+                    .builder()
+                    .chatRoomId(chatRoom.getId())
+                    .roomType(chatRoom.getRoomType())
+                    .totalUnreadMessages(TotalUnreadMessages)
+                    .lastestMessage(lastestMessage)
+                    .roomInfo(groupInfo)
+                    .build();
+        }).toList();
     }
 
     @Override
     public ChatRoomDetailDTO getChatRoomDetail(String chatRoomId) {
-        ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId).orElseThrow(() -> new ResourceNotFoundException("Invalid chatroom"));
+        ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
+                .orElseThrow(() -> new ResourceNotFoundException("Invalid chatroom"));
 
-        List<ChatRoomDetailDTO.MessageHistoryDTO> messageHistory = chatRoom.getMessageHistory()
+        List<ChatRoomDetailDTO.MessageHistoryDTO> messageHistory = chatRoom
+                .getMessageHistory()
                 .stream()
                 .map(msgHistory -> {
                     Double day = msgHistory.getDay();
-                    List<MessageDTO> messages = msgHistory.getMessages().stream()
-                            .map(msg -> MessageDTO.builder()
-                                    .id(msg.getId())
-                                    .messageType(msg.getMessageType())
-                                    .content(msg.getContent())
-                                    .timeSent(msg.getTimeSent())
-                                    .imageUrl(msg.getImageUrl())
-                                    .callDetails(msg.getCallDetails())
-                                    .voiceDetail(msg.getVoiceDetail())
-                                    .undeliveredMembersId(msg.getUndeliveredMembers().stream().map(User::getId).toList())
-                                    .unreadMembersId(msg.getUnreadMembers().stream().map(User::getId).toList())
-                                    .deliveredStatus(msg.getUndeliveredMembers().isEmpty())
-                                    .readStatus(msg.getUnreadMembers().isEmpty())
-                                    .senderId(msg.getSender().getId()).build()).toList();
-                    return ChatRoomDetailDTO.MessageHistoryDTO
+                    List<MessageDTO> messages = msgHistory.getMessages().stream().map(msg -> MessageDTO
                             .builder()
-                            .day(day)
-                            .messages(messages)
-                            .build();
+                            .id(msg.getId())
+                            .messageType(msg.getMessageType())
+                            .content(msg.getContent())
+                            .timeSent(msg.getTimeSent())
+                            .imageUrl(msg.getImageUrl())
+                            .callDetails(msg.getCallDetails())
+                            .voiceDetail(msg.getVoiceDetail())
+                            .undeliveredMembersId(msg.getUndeliveredMembers().stream().map(User::getId).toList())
+                            .unreadMembersId(msg.getUnreadMembers().stream().map(User::getId).toList())
+                            .deliveredStatus(msg.getUndeliveredMembers().isEmpty())
+                            .readStatus(msg.getUnreadMembers().isEmpty())
+                            .senderId(msg.getSender().getId()).build()).toList();
+                    return ChatRoomDetailDTO.MessageHistoryDTO.builder().day(day).messages(messages).build();
                 }).toList();
-//        Map<Double, List<MessageDTO>> messageHistory = chatRoom.getMessageHistory()
-//                .stream()
-//                .collect(Collectors.toMap(
-//                        ChatRoom.MessageHistory::getDay,
-//                        msgHistory -> msgHistory.getMessages()
-//                                .stream()
-//                                .map(msg -> MessageDTO.builder()
-//                                        .id(msg.getId())
-//                                        .messageType(msg.getMessageType())
-//                                        .content(msg.getContent())
-//                                        .timeSent(msg.getTimeSent())
-//                                        .imageUrl(msg.getImageUrl())
-//                                        .callDetails(msg.getCallDetails())
-//                                        .voiceDetail(msg.getVoiceDetail())
-//                                        .undeliveredMembersId(msg.getUndeliveredMembers().stream().map(User::getId).toList())
-//                                        .unreadMembersId(msg.getUnreadMembers().stream().map(User::getId).toList())
-//                                        .deliveredStatus(msg.getUndeliveredMembers().isEmpty())
-//                                        .readStatus(msg.getUnreadMembers().isEmpty())
-//                                        .senderId(msg.getSender().getId()).build()).toList()));
+        List<GeneralUserProfileDTO> members = chatRoom.getMembers()
+                .stream().map(mem -> GeneralUserProfileDTO
+                .builder()
+                .id(mem.getId())
+                .name(mem.getName())
+                .username(mem.getUsername())
+                .status(mem.getStatus())
+                .bio(mem.getBio())
+                .avatar(mem.getAvatar())
+                .build()).toList();
 
-        return ChatRoomDetailDTO.builder()
+        return ChatRoomDetailDTO
+                .builder()
                 .chatRoomId(chatRoom.getId())
                 .roomType(chatRoom.getRoomType())
                 .messageHistory(messageHistory)
+                .members(members)
                 .build();
     }
 
@@ -157,36 +164,21 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 
         Authentication authentication = SecurityUtils.getAuthentication();
         String username = ((UserDetails) authentication.getPrincipal()).getUsername();
-        User authenticatedUser = userRepository
-                .findByUsername(username).orElseThrow(() -> new BadCredentialsException("Invalid credential"));
+        User authenticatedUser = userRepository.findByUsername(username).orElseThrow(() -> new BadCredentialsException("Invalid credential"));
 
-        ChatRoom chatRoom = chatRoomRepository
-                .findById(chatRoomId)
-                .orElseThrow(() -> new ResourceNotFoundException("chat room doesn't exist"));
+        ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId).orElseThrow(() -> new ResourceNotFoundException("chat room doesn't exist"));
 
         if (chatRoom.getMembers().stream().noneMatch(user -> user.getId().equals(authenticatedUser.getId()))) {
             throw new BadRequestException("You are not allowed to perform this action");
         }
 
 
-        Message message = Message
-                .builder()
-                .messageType(messageDTO.getMessageType())
-                .content(messageDTO.getContent()).timeSent((double) Instant.now().toEpochMilli())
-                .imageUrl(messageDTO.getImageUrl())
-                .sender(authenticatedUser)
-                .build();
+        Message message = Message.builder().messageType(messageDTO.getMessageType()).content(messageDTO.getContent()).timeSent((double) Instant.now().toEpochMilli()).imageUrl(messageDTO.getImageUrl()).sender(authenticatedUser).build();
 
         List<User> remainingMembers = chatRoom.getMembers().stream().filter(member -> {
             if (!member.getId().equals(authenticatedUser.getId())) {
-                member.getUnreadMessages().add(UnreadMessage.builder()
-                        .messageId(message.getId())
-                        .chatRoomId(chatRoom.getId())
-                        .build());
-                member.getUndeliveredMessages().add(UndeliveredMessage.builder()
-                        .messageId(message.getId())
-                        .chatRoomId(chatRoom.getId())
-                        .build());
+                member.getUnreadMessages().add(UnreadMessage.builder().messageId(message.getId()).chatRoomId(chatRoom.getId()).build());
+                member.getUndeliveredMessages().add(UndeliveredMessage.builder().messageId(message.getId()).chatRoomId(chatRoom.getId()).build());
                 return true;
             }
             return false;
@@ -198,11 +190,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
         Double today = (double) LocalDate.now().atStartOfDay(ZoneOffset.UTC) // Start of day in UTC
                 .toInstant().toEpochMilli();
 
-        ChatRoom.MessageHistory messageHistory = chatRoom.getMessageHistory()
-                .stream()
-                .filter(messageHistoryy -> messageHistoryy.getDay().equals(today))
-                .findFirst()
-                .orElse(null);
+        ChatRoom.MessageHistory messageHistory = chatRoom.getMessageHistory().stream().filter(messageHistoryy -> messageHistoryy.getDay().equals(today)).findFirst().orElse(null);
 
         if (messageHistory == null) {
             messageHistory = ChatRoom.MessageHistory.builder().day(today).messages(List.of(message)).build();
@@ -214,20 +202,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
         chatRoomRepository.save(chatRoom);
         userRepository.saveAll(remainingMembers);
 
-        return MessageDTO.builder()
-                .id(message.getId())
-                .messageType(message.getMessageType())
-                .content(message.getContent())
-                .timeSent(message.getTimeSent())
-                .imageUrl(message.getImageUrl())
-                .callDetails(message.getCallDetails())
-                .voiceDetail(message.getVoiceDetail())
-                .undeliveredMembersId(message.getUndeliveredMembers().stream().map(User::getId).toList())
-                .unreadMembersId(message.getUnreadMembers().stream().map(User::getId).toList())
-                .deliveredStatus(message.getUndeliveredMembers().isEmpty())
-                .readStatus(message.getUnreadMembers().isEmpty())
-                .senderId(authenticatedUser.getId())
-                .build();
+        return MessageDTO.builder().id(message.getId()).messageType(message.getMessageType()).content(message.getContent()).timeSent(message.getTimeSent()).imageUrl(message.getImageUrl()).callDetails(message.getCallDetails()).voiceDetail(message.getVoiceDetail()).undeliveredMembersId(message.getUndeliveredMembers().stream().map(User::getId).toList()).unreadMembersId(message.getUnreadMembers().stream().map(User::getId).toList()).deliveredStatus(message.getUndeliveredMembers().isEmpty()).readStatus(message.getUnreadMembers().isEmpty()).senderId(authenticatedUser.getId()).build();
     }
 
     @Override
@@ -235,41 +210,22 @@ public class ChatRoomServiceImpl implements ChatRoomService {
     public List<MessageStatusDTO> markDeliveredMessages(String chatRoomId) {
         Authentication authentication = SecurityUtils.getAuthentication();
         String username = ((UserDetails) authentication.getPrincipal()).getUsername();
-        User authenticatedUser = userRepository.findByUsername(username)
-                .orElseThrow(() -> new BadCredentialsException("Invalid credential"));
+        User authenticatedUser = userRepository.findByUsername(username).orElseThrow(() -> new BadCredentialsException("Invalid credential"));
         log.info("current undelivered authenticated user: {}", username);
 
-        ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
-                .orElseThrow(() -> new ResourceNotFoundException("Chat room doesn't exist"));
+        ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId).orElseThrow(() -> new ResourceNotFoundException("Chat room doesn't exist"));
 
 
-        List<String> undeliveredMessageIds = authenticatedUser.getUndeliveredMessages()
-                .stream()
-                .filter(undeliveredMessage -> undeliveredMessage.getChatRoomId().equals(chatRoomId))
-                .map(UndeliveredMessage::getMessageId)
-                .toList();
+        List<String> undeliveredMessageIds = authenticatedUser.getUndeliveredMessages().stream().filter(undeliveredMessage -> undeliveredMessage.getChatRoomId().equals(chatRoomId)).map(UndeliveredMessage::getMessageId).toList();
 
         //Remove all the undelivered messages from current user
-        authenticatedUser.getUndeliveredMessages()
-                .removeIf(undeliveredMessage -> undeliveredMessageIds.contains(undeliveredMessage.getMessageId()));
+        authenticatedUser.getUndeliveredMessages().removeIf(undeliveredMessage -> undeliveredMessageIds.contains(undeliveredMessage.getMessageId()));
 
         //Remove undelivered user from chat room's messages
-        List<MessageStatusDTO> messageStatusList = chatRoom.getMessageHistory()
-                .stream()
-                .flatMap(msgHistory -> msgHistory.getMessages().stream())
-                .filter(filteredMsg -> undeliveredMessageIds.contains(filteredMsg.getId()))
-                .map(msg -> {
-                    msg.getUndeliveredMembers()
-                            .removeIf(unreadMem -> unreadMem.getId().equals(authenticatedUser.getId()));
-                    return MessageStatusDTO
-                            .builder()
-                            .chatRoomId(chatRoomId)
-                            .messageId(msg.getId())
-                            .unreadMembers(msg.getUnreadMembers().stream().map(User::getId).toList())
-                            .undeliveredMembers(msg.getUndeliveredMembers().stream().map(User::getId).toList())
-                            .senderId(authenticatedUser.getId())
-                            .build();
-                }).toList();
+        List<MessageStatusDTO> messageStatusList = chatRoom.getMessageHistory().stream().flatMap(msgHistory -> msgHistory.getMessages().stream()).filter(filteredMsg -> undeliveredMessageIds.contains(filteredMsg.getId())).map(msg -> {
+            msg.getUndeliveredMembers().removeIf(unreadMem -> unreadMem.getId().equals(authenticatedUser.getId()));
+            return MessageStatusDTO.builder().chatRoomId(chatRoomId).messageId(msg.getId()).unreadMembers(msg.getUnreadMembers().stream().map(User::getId).toList()).undeliveredMembers(msg.getUndeliveredMembers().stream().map(User::getId).toList()).senderId(authenticatedUser.getId()).build();
+        }).toList();
 
         chatRoomRepository.save(chatRoom);
         userRepository.save(authenticatedUser);
@@ -287,42 +243,35 @@ public class ChatRoomServiceImpl implements ChatRoomService {
         ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
                 .orElseThrow(() -> new ResourceNotFoundException("Chat room doesn't exist"));
 
-        List<String> unreadMessageIds = authenticatedUser.getUnreadMessages()
-                .stream()
+        List<String> unreadMessageIds = authenticatedUser.getUnreadMessages().stream()
                 .filter(unreadMessage -> unreadMessage.getChatRoomId().equals(chatRoomId))
-                .map(UnreadMessage::getMessageId)
-                .toList();
+                .map(UnreadMessage::getMessageId).toList();
 
-        List<String> undeliveredMessageIds = authenticatedUser.getUndeliveredMessages()
-                .stream()
+        List<String> undeliveredMessageIds = authenticatedUser.getUndeliveredMessages().stream()
                 .filter(undeliveredMessage -> undeliveredMessage.getChatRoomId().equals(chatRoomId))
-                .map(UndeliveredMessage::getMessageId)
-                .toList();
+                .map(UndeliveredMessage::getMessageId).toList();
 
         //Remove all the unread messages from current user
-        authenticatedUser.getUnreadMessages()
-                .removeIf(unreadMessage -> unreadMessageIds.contains(unreadMessage.getMessageId()));
-        authenticatedUser.getUndeliveredMessages()
-                .removeIf(undeliveredMessage -> undeliveredMessageIds.contains(undeliveredMessage.getMessageId()));
+        authenticatedUser.getUnreadMessages().removeIf(unreadMessage -> unreadMessageIds
+                .contains(unreadMessage.getMessageId()));
+        authenticatedUser.getUndeliveredMessages().removeIf(undeliveredMessage -> undeliveredMessageIds
+                .contains(undeliveredMessage.getMessageId()));
 
         //Remove unread user from chat room's messages
-        List<MessageStatusDTO> messageStatusList = chatRoom.getMessageHistory()
-                .stream()
-                .flatMap(msgHistory -> msgHistory.getMessages().stream())
+        List<MessageStatusDTO> messageStatusList = chatRoom.getMessageHistory().stream().flatMap(msgHistory -> msgHistory.getMessages().stream())
                 .filter(filteredMsg -> unreadMessageIds.contains(filteredMsg.getId()) || undeliveredMessageIds.contains(filteredMsg.getId()))
                 .map(msg -> {
-                    msg.getUndeliveredMembers().removeIf(unreadMem -> unreadMem.getId().equals(authenticatedUser.getId()));
-                    msg.getUnreadMembers().removeIf(unreadMem -> unreadMem.getId().equals(authenticatedUser.getId()));
+            msg.getUndeliveredMembers().removeIf(unreadMem -> unreadMem.getId().equals(authenticatedUser.getId()));
+            msg.getUnreadMembers().removeIf(unreadMem -> unreadMem.getId().equals(authenticatedUser.getId()));
 
-                    return MessageStatusDTO
-                            .builder()
-                            .chatRoomId(chatRoomId)
-                            .messageId(msg.getId())
-                            .unreadMembers(msg.getUnreadMembers().stream().map(User::getId).toList())
-                            .undeliveredMembers(msg.getUndeliveredMembers().stream().map(User::getId).toList())
-                            .senderId(authenticatedUser.getId())
-                            .build();
-                }).toList();
+            return MessageStatusDTO.builder()
+                    .chatRoomId(chatRoomId)
+                    .messageId(msg.getId())
+                    .unreadMembers(msg.getUnreadMembers().stream().map(User::getId).toList())
+                    .undeliveredMembers(msg.getUndeliveredMembers().stream().map(User::getId).toList())
+                    .senderId(authenticatedUser.getId())
+                    .build();
+        }).toList();
 
         chatRoomRepository.save(chatRoom);
         userRepository.save(authenticatedUser);
@@ -335,21 +284,19 @@ public class ChatRoomServiceImpl implements ChatRoomService {
         Authentication authentication = SecurityUtils.getAuthentication();
         String username = ((UserDetails) authentication.getPrincipal()).getUsername();
         User authenticatedUser = userRepository.findByUsername(username).orElseThrow(() -> new BadCredentialsException("Invalid credential"));
-        authenticatedUser.setStatus(User.UserStatus
-                .builder()
-                .online(false)
-                .lastSeen((double) Instant.now().toEpochMilli())
-                .build());
+
+//        authenticatedUser.setStatus(User.UserStatus.builder().online(false).lastSeen((double) Instant.now().toEpochMilli()).build());
+        authenticatedUser.getStatus().setOnline(false);
+        authenticatedUser.getStatus().setLastSeen((double) Instant.now().toEpochMilli());
         mongoTemplate.save(authenticatedUser, "user");
+
         authenticatedUser.getChatRooms().stream().forEach(chatRoom -> {
-            simpMessagingTemplate.convertAndSend("/topic/chatRoom/" + chatRoom.getId() + "/onlineStatus",
-                    OnlineStatusDTO
-                            .builder()
-                            .chatRoomId(chatRoom.getId())
-                            .senderId(authenticatedUser.getId())
-                            .status(authenticatedUser.getStatus().isOnline())
-                            .lastSeen(authenticatedUser.getStatus().getLastSeen())
-                            .build());
+            simpMessagingTemplate.convertAndSend("/topic/chatRoom/" + chatRoom.getId() + "/onlineStatus", OnlineStatusDTO
+                    .builder().chatRoomId(chatRoom.getId())
+                    .senderId(authenticatedUser.getId())
+                    .status(authenticatedUser.getStatus().isOnline())
+                    .lastSeen(authenticatedUser.getStatus().getLastSeen())
+                    .build());
         });
     }
 
@@ -359,21 +306,41 @@ public class ChatRoomServiceImpl implements ChatRoomService {
         Authentication authentication = SecurityUtils.getAuthentication();
         String username = ((UserDetails) authentication.getPrincipal()).getUsername();
         User authenticatedUser = userRepository.findByUsername(username).orElseThrow(() -> new BadCredentialsException("Invalid credential"));
-        authenticatedUser.setStatus(User.UserStatus
-                .builder()
-                .online(true)
-                .build());
+        authenticatedUser.getStatus().setOnline(true);
+
         mongoTemplate.save(authenticatedUser, "user");
         authenticatedUser.getChatRooms().stream().forEach(chatRoom -> {
-            simpMessagingTemplate.convertAndSend("/topic/chatRoom/" + chatRoom.getId() + "/onlineStatus",
-                    OnlineStatusDTO
-                            .builder()
-                            .chatRoomId(chatRoom.getId())
-                            .senderId(authenticatedUser.getId())
-                            .status(authenticatedUser.getStatus().isOnline())
-                            .lastSeen(authenticatedUser.getStatus().getLastSeen())
-                            .build());
+            simpMessagingTemplate
+                    .convertAndSend("/topic/chatRoom/" + chatRoom.getId() + "/onlineStatus"
+                            , OnlineStatusDTO.builder()
+                                    .chatRoomId(chatRoom.getId())
+                                    .senderId(authenticatedUser.getId())
+                                    .status(authenticatedUser.getStatus().isOnline())
+                                    .lastSeen(authenticatedUser.getStatus().getLastSeen())
+                                    .build());
         });
+    }
+
+    @Override //Haven't checked the appropriate contact list
+    public void createGroup(GroupCreationRequest groupCreationRequest) {
+        Authentication authentication = SecurityUtils.getAuthentication();
+        String username = ((UserDetails) authentication.getPrincipal()).getUsername();
+        User authenticatedUser = userRepository.findByUsername(username)
+                .orElseThrow(() -> new BadCredentialsException("Invalid credential"));
+        groupCreationRequest.getMembersId().add(authenticatedUser.getId());
+
+        List<User> members = userRepository.findByUserIds(groupCreationRequest.getMembersId());
+        ChatRoom chatroom = ChatRoom
+                .builder()
+                .groupName(groupCreationRequest.getGroupName())
+                .groupAvatar("https://static.vecteezy.com/system/resources/thumbnails/036/280/651/small_2x/default-avatar-profile-icon-social-media-user-image-gray-avatar-icon-blank-profile-silhouette-illustration-vector.jpg")
+                .roomType(RoomType.GROUP)
+                .members(members)
+                .build();
+        chatRoomRepository.save(chatroom);
+
+        members.forEach(mem -> mem.getChatRooms().add(chatroom));
+        userRepository.saveAll(members);
     }
 }
 

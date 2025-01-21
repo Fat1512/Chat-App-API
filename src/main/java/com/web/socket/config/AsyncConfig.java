@@ -14,6 +14,7 @@ import java.util.concurrent.Executor;
 @RequiredArgsConstructor
 @EnableAsync
 public class AsyncConfig implements AsyncConfigurer {
+    //Override the default executor
     @Qualifier("taskExecutor")
     private final ThreadPoolTaskExecutor threadPoolTaskExecutor;
 

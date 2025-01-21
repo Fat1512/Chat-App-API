@@ -89,7 +89,6 @@ public class WebsocketConfig implements WebSocketMessageBrokerConfigurer {
             @Override
             public Message<?> preSend(Message<?> message, MessageChannel channel) {
                 StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
-
                 log.info("Headers: {}", accessor);
                 if (StompCommand.DISCONNECT.equals(accessor.getCommand())) {
 //        messagingTemplate.convertAndSend("/topic/status", "User disconnected: " + sessionId);

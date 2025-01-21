@@ -1,5 +1,6 @@
 package com.web.socket.controller;
 
+import com.web.socket.config.AmazonClient;
 import com.web.socket.dto.UserProfileDTO;
 import com.web.socket.dto.response.APIResponse;
 import com.web.socket.service.UserService;
@@ -8,8 +9,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.util.concurrent.ExecutionException;
+import java.io.IOException;
 
 @RestController
 @CrossOrigin("http://localhost:5173")
@@ -17,6 +19,7 @@ import java.util.concurrent.ExecutionException;
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
+    private final AmazonClient amazonClient;
     @GetMapping("/{userId}/profile")
     public ResponseEntity<?> getUserProfile(@PathVariable String userId) {
         UserProfileDTO userProfileDTO = userService.getProfile(userId);
@@ -37,6 +40,16 @@ public class UserController {
                 .data(userProfileDTO)
                 .build();
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+    }
+
+    @PostMapping("/upload-avt")
+    public ResponseEntity<?> uploadAvatar(@RequestParam("file") MultipartFile file) throws IOException {
+        try {
+            amazonClient.uploadFileToS3(file);
+        } catch(IOException e) {
+            throw new RuntimeException("Failed to upload file");
+        }
+        return null;
     }
 
 }

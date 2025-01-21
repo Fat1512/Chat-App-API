@@ -22,6 +22,8 @@ public class ChatRoom {
 
     private RoomType roomType;
 
+    private String groupName;
+    private String groupAvatar;
     @Builder.Default
     private List<MessageHistory> messageHistory = new ArrayList<>();
 

@@ -1,10 +1,7 @@
 package com.web.socket.controller;
 
 
-import com.web.socket.dto.ChatRoomDetailDTO;
-import com.web.socket.dto.ChatRoomSummaryDTO;
-import com.web.socket.dto.MessageDTO;
-import com.web.socket.dto.MessageStatusDTO;
+import com.web.socket.dto.*;
 import com.web.socket.dto.response.APIResponse;
 import com.web.socket.service.ChatRoomService;
 import com.web.socket.utils.APIResponseMessage;
@@ -14,7 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -33,7 +29,16 @@ public class ChatRoomController {
                 .build();
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
-
+    @PostMapping("/chatrooms/create-chatroom")
+    public ResponseEntity<APIResponse> createChatRoom(@RequestBody GroupCreationRequest groupCreationRequest)  {
+        chatRoomService.createGroup(groupCreationRequest);
+//        APIResponse apiResponse = APIResponse.builder()
+//                .status(HttpStatus.OK)
+//                .message(APIResponseMessage.SUCCESSFULLY_RETRIEVED.name())
+//                .data(chatRoomSummaryList)
+//                .build();
+        return new ResponseEntity<>(null, HttpStatus.OK);
+    }
     @GetMapping("/chatrooms/{chatRoomId}")
     public ResponseEntity<APIResponse> getChatRoomDetail(@PathVariable String chatRoomId) {
         ChatRoomDetailDTO chatRoomDetailDTO = chatRoomService.getChatRoomDetail(chatRoomId);

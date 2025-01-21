@@ -13,5 +13,5 @@ public class ChatRoomSummaryDTO {
     private RoomType roomType;
     private MessageDTO lastestMessage;
     private Integer totalUnreadMessages;
-    private GeneralUserProfileDTO userProfile;
+    private Object roomInfo;
 }

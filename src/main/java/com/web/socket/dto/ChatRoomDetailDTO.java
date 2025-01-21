@@ -15,7 +15,7 @@ public class ChatRoomDetailDTO {
     private String chatRoomId;
     private RoomType roomType;
     private List<MessageHistoryDTO> messageHistory;
-
+    private List<GeneralUserProfileDTO> members;
     @Getter
     @Setter
     @Builder
