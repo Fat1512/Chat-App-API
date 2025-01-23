@@ -20,7 +20,7 @@ public class ChatRoomController {
     private final ChatRoomService chatRoomService;
 
     @GetMapping("/chatrooms")
-    public ResponseEntity<APIResponse> getChatRoomSummary()  {
+    public ResponseEntity<APIResponse> getChatRoomSummary() {
         List<ChatRoomSummaryDTO> chatRoomSummaryList = chatRoomService.getChatRoomSummary();
         APIResponse apiResponse = APIResponse.builder()
                 .status(HttpStatus.OK)
@@ -30,8 +30,8 @@ public class ChatRoomController {
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
     @PostMapping("/chatrooms/create-chatroom")
-    public ResponseEntity<APIResponse> createChatRoom(@RequestBody GroupCreationRequest groupCreationRequest)  {
-        chatRoomService.createGroup(groupCreationRequest);
+    public ResponseEntity<APIResponse> createChatRoom(@RequestBody GroupCreationDTO groupCreationDTO)  {
+        chatRoomService.createGroup(groupCreationDTO);
 //        APIResponse apiResponse = APIResponse.builder()
 //                .status(HttpStatus.OK)
 //                .message(APIResponseMessage.SUCCESSFULLY_RETRIEVED.name())

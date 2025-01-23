@@ -19,9 +19,7 @@ import java.util.List;
 public class ChatRoom {
     @Id
     private String id;
-
     private RoomType roomType;
-
     private String groupName;
     private String groupAvatar;
     @Builder.Default

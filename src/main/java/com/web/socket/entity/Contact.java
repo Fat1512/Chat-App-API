@@ -15,9 +15,9 @@ public class Contact {
     private String id = new ObjectId().toString();
     private String name;
 
-    @DocumentReference
+    @DocumentReference(lazy = true)
     private User user;
 
-    @DocumentReference
+    @DocumentReference(lazy = true)
     private ChatRoom chatRoom;
 }

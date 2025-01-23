@@ -7,13 +7,15 @@ import org.springframework.data.mongodb.core.mapping.DocumentReference;
 import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Document
 @Getter
 @Setter
 @Builder
-public class User {
+public class  User {
     @Id
     private String id;
     @Field
@@ -42,7 +44,7 @@ public class User {
 
     @Builder.Default
     @DocumentReference(lazy = true)
-    private List<ChatRoom> chatRooms = new ArrayList<>();
+    private Set<ChatRoom> chatRooms = new HashSet<>();
 
     @Builder.Default
     @DocumentReference(lazy = true)

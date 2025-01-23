@@ -12,5 +12,5 @@ public interface ChatRoomService {
     List<MessageStatusDTO> markDeliveredMessages(String chatRoomId) ;
     void broadcastOfflineStatus();
     void broadcastOnlineStatus();
-    void createGroup(GroupCreationRequest groupCreationRequest);
+    void createGroup(GroupCreationDTO groupCreationDTO);
 }

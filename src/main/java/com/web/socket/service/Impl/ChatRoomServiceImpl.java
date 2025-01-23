@@ -41,8 +41,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
         String username = ((UserDetails) authentication.getPrincipal()).getUsername();
         User authenticatedUser = userRepository.findByUsername(username).orElseThrow(() -> new BadCredentialsException("Invalid credential"));
 
-        return authenticatedUser.getChatRooms().stream().filter(chatRoom -> !chatRoom.getMessageHistory().isEmpty() ||
-                chatRoom.getRoomType().toString().equals("GROUP")).map(chatRoom -> {
+        return authenticatedUser.getChatRooms().stream().map(chatRoom -> {
             //Get the lastest message per chatroom
             Message message = chatRoom.getMessageHistory()
                     .stream()
@@ -51,7 +50,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
                     .orElse(null);
 
             //Newly created group chat doesn't have value but should be retrieved
-            MessageDTO lastestMessage = new MessageDTO();
+            MessageDTO lastestMessage = null;
             Integer TotalUnreadMessages = 0;
             if (message != null) {
 
@@ -79,7 +78,9 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 
             Object groupInfo = switch (chatRoom.getRoomType().toString()) {
                 case "PRIVATE" -> {
-                    User userFriend = chatRoom.getMembers().stream().filter(member -> !member.getId().equals(authenticatedUser.getId()))
+                    User userFriend = chatRoom.getMembers()
+                            .stream()
+                            .filter(member -> !member.getId().equals(authenticatedUser.getId()))
                             .findFirst()
                             .orElseThrow(() -> new ResourceNotFoundException("Not found"));
                     yield SingleProfileDTO
@@ -166,19 +167,29 @@ public class ChatRoomServiceImpl implements ChatRoomService {
         String username = ((UserDetails) authentication.getPrincipal()).getUsername();
         User authenticatedUser = userRepository.findByUsername(username).orElseThrow(() -> new BadCredentialsException("Invalid credential"));
 
-        ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId).orElseThrow(() -> new ResourceNotFoundException("chat room doesn't exist"));
+        ChatRoom chatRoom = chatRoomRepository
+                .findById(chatRoomId)
+                .orElseThrow(() -> new ResourceNotFoundException("chat room doesn't exist"));
 
-        if (chatRoom.getMembers().stream().noneMatch(user -> user.getId().equals(authenticatedUser.getId()))) {
+        if (chatRoom.getMembers().stream()
+                .noneMatch(user -> user.getId().equals(authenticatedUser.getId()))) {
             throw new BadRequestException("You are not allowed to perform this action");
         }
-
 
         Message message = Message.builder().messageType(messageDTO.getMessageType()).content(messageDTO.getContent()).timeSent((double) Instant.now().toEpochMilli()).imageUrl(messageDTO.getImageUrl()).sender(authenticatedUser).build();
 
         List<User> remainingMembers = chatRoom.getMembers().stream().filter(member -> {
             if (!member.getId().equals(authenticatedUser.getId())) {
-                member.getUnreadMessages().add(UnreadMessage.builder().messageId(message.getId()).chatRoomId(chatRoom.getId()).build());
-                member.getUndeliveredMessages().add(UndeliveredMessage.builder().messageId(message.getId()).chatRoomId(chatRoom.getId()).build());
+                member.getUnreadMessages()
+                        .add(UnreadMessage.builder()
+                                .messageId(message.getId())
+                                .chatRoomId(chatRoom.getId())
+                                .build());
+                member.getUndeliveredMessages()
+                        .add(UndeliveredMessage.builder()
+                                .messageId(message.getId())
+                                .chatRoomId(chatRoom.getId())
+                                .build());
                 return true;
             }
             return false;
@@ -322,17 +333,17 @@ public class ChatRoomServiceImpl implements ChatRoomService {
     }
 
     @Override //Haven't checked the appropriate contact list
-    public void createGroup(GroupCreationRequest groupCreationRequest) {
+    public void createGroup(GroupCreationDTO groupCreationDTO) {
         Authentication authentication = SecurityUtils.getAuthentication();
         String username = ((UserDetails) authentication.getPrincipal()).getUsername();
         User authenticatedUser = userRepository.findByUsername(username)
                 .orElseThrow(() -> new BadCredentialsException("Invalid credential"));
-        groupCreationRequest.getMembersId().add(authenticatedUser.getId());
+        groupCreationDTO.getMembersId().add(authenticatedUser.getId());
 
-        List<User> members = userRepository.findByUserIds(groupCreationRequest.getMembersId());
+        List<User> members = userRepository.findByUserIds(groupCreationDTO.getMembersId());
         ChatRoom chatroom = ChatRoom
                 .builder()
-                .groupName(groupCreationRequest.getGroupName())
+                .groupName(groupCreationDTO.getGroupName())
                 .groupAvatar("https://static.vecteezy.com/system/resources/thumbnails/036/280/651/small_2x/default-avatar-profile-icon-social-media-user-image-gray-avatar-icon-blank-profile-silhouette-illustration-vector.jpg")
                 .roomType(RoomType.GROUP)
                 .members(members)
