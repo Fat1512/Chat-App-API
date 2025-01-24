@@ -3,6 +3,7 @@ package com.web.socket.controller;
 import com.web.socket.dto.MessageDTO;
 import com.web.socket.dto.MessageEventDTO;
 import com.web.socket.dto.MessageStatusDTO;
+import com.web.socket.dto.WebRTCMessage;
 import com.web.socket.entity.User;
 import com.web.socket.repository.UserRepository;
 import com.web.socket.service.ChatRoomService;
@@ -82,4 +83,84 @@ public class SocketController {
         List<MessageStatusDTO> messageStatusDTOList = chatRoomService.markDeliveredMessages(chatRoomId);
         return messageStatusDTOList;
     }
+
+    @MessageMapping("/chatRoom/{chatRoomId}/callRequest")
+    @SendTo("/topic/chatRoom/{chatRoomId}/callRequest")
+    public WebRTCMessage requestCall(
+            @RequestBody WebRTCMessage signalData) {
+        return signalData;
+    }
+
+    @MessageMapping("/chatRoom/{chatRoomId}/callAccepted")
+    @SendTo("/topic/chatRoom/{chatRoomId}/callAccepted")
+    public WebRTCMessage acceptCall(
+            @RequestBody WebRTCMessage signalData) {
+        return signalData;
+    }
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
