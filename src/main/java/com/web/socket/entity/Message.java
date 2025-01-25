@@ -40,6 +40,8 @@ public class Message {
 
     @Setter @Getter
     @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
     public static class VoiceDetail {
         @Builder.Default
         private String id = new ObjectId().toString();
@@ -49,6 +51,8 @@ public class Message {
 
     @Setter @Getter
     @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
     public static class CallDetail {
         @Builder.Default
         private String id = new ObjectId().toString();

@@ -39,7 +39,8 @@ public class ChatRoomServiceImpl implements ChatRoomService {
     public List<ChatRoomSummaryDTO> getChatRoomSummary() {
         Authentication authentication = SecurityUtils.getAuthentication();
         String username = ((UserDetails) authentication.getPrincipal()).getUsername();
-        User authenticatedUser = userRepository.findByUsername(username).orElseThrow(() -> new BadCredentialsException("Invalid credential"));
+        User authenticatedUser = userRepository.findByUsername(username)
+                .orElseThrow(() -> new BadCredentialsException("Invalid credential"));
 
         return authenticatedUser.getChatRooms().stream().map(chatRoom -> {
             //Get the lastest message per chatroom
@@ -176,7 +177,15 @@ public class ChatRoomServiceImpl implements ChatRoomService {
             throw new BadRequestException("You are not allowed to perform this action");
         }
 
-        Message message = Message.builder().messageType(messageDTO.getMessageType()).content(messageDTO.getContent()).timeSent((double) Instant.now().toEpochMilli()).imageUrl(messageDTO.getImageUrl()).sender(authenticatedUser).build();
+        Message message = Message
+                .builder()
+                .messageType(messageDTO.getMessageType())
+                .content(messageDTO.getContent())
+                .callDetails(messageDTO.getCallDetails())
+                .voiceDetail(messageDTO.getVoiceDetail())
+                .timeSent((double) Instant.now().toEpochMilli())
+                .imageUrl(messageDTO.getImageUrl())
+                .sender(authenticatedUser).build();
 
         List<User> remainingMembers = chatRoom.getMembers().stream().filter(member -> {
             if (!member.getId().equals(authenticatedUser.getId())) {
@@ -201,10 +210,14 @@ public class ChatRoomServiceImpl implements ChatRoomService {
         Double today = (double) LocalDate.now().atStartOfDay(ZoneOffset.UTC) // Start of day in UTC
                 .toInstant().toEpochMilli();
 
-        ChatRoom.MessageHistory messageHistory = chatRoom.getMessageHistory().stream().filter(messageHistoryy -> messageHistoryy.getDay().equals(today)).findFirst().orElse(null);
+        ChatRoom.MessageHistory messageHistory = chatRoom.getMessageHistory().stream().filter(msgHistory -> msgHistory.getDay().equals(today)).findFirst().orElse(null);
 
         if (messageHistory == null) {
-            messageHistory = ChatRoom.MessageHistory.builder().day(today).messages(List.of(message)).build();
+            messageHistory = ChatRoom.MessageHistory
+                    .builder()
+                    .day(today)
+                    .messages(List.of(message))
+                    .build();
             chatRoom.getMessageHistory().add(messageHistory);
         } else {
             messageHistory.getMessages().add(message);
@@ -213,7 +226,22 @@ public class ChatRoomServiceImpl implements ChatRoomService {
         chatRoomRepository.save(chatRoom);
         userRepository.saveAll(remainingMembers);
 
-        return MessageDTO.builder().id(message.getId()).messageType(message.getMessageType()).content(message.getContent()).timeSent(message.getTimeSent()).imageUrl(message.getImageUrl()).callDetails(message.getCallDetails()).voiceDetail(message.getVoiceDetail()).undeliveredMembersId(message.getUndeliveredMembers().stream().map(User::getId).toList()).unreadMembersId(message.getUnreadMembers().stream().map(User::getId).toList()).deliveredStatus(message.getUndeliveredMembers().isEmpty()).readStatus(message.getUnreadMembers().isEmpty()).senderId(authenticatedUser.getId()).build();
+        return MessageDTO
+                .builder()
+                .id(message.getId())
+                .messageType(message.getMessageType())
+                .content(message.getContent())
+                .timeSent(message.getTimeSent())
+                .imageUrl(message.getImageUrl())
+                .callDetails(message.getCallDetails())
+                .voiceDetail(message.getVoiceDetail())
+                .undeliveredMembersId(message.getUndeliveredMembers()
+                        .stream().map(User::getId).toList())
+                .unreadMembersId(message.getUnreadMembers().stream().map(User::getId).toList())
+                .deliveredStatus(message.getUndeliveredMembers().isEmpty())
+                .readStatus(message.getUnreadMembers().isEmpty())
+                .senderId(authenticatedUser.getId())
+                .build();
     }
 
     @Override

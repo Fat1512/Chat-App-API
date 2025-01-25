@@ -1,9 +1,6 @@
 package com.web.socket.controller;
 
-import com.web.socket.dto.MessageDTO;
-import com.web.socket.dto.MessageEventDTO;
-import com.web.socket.dto.MessageStatusDTO;
-import com.web.socket.dto.WebRTCMessage;
+import com.web.socket.dto.*;
 import com.web.socket.entity.User;
 import com.web.socket.repository.UserRepository;
 import com.web.socket.service.ChatRoomService;
@@ -86,19 +83,29 @@ public class SocketController {
 
     @MessageMapping("/chatRoom/{chatRoomId}/callRequest")
     @SendTo("/topic/chatRoom/{chatRoomId}/callRequest")
-    public WebRTCMessage requestCall(
-            @RequestBody WebRTCMessage signalData) {
+    public WebRTCMessageDTO requestCall(
+            @RequestBody WebRTCMessageDTO signalData) {
         return signalData;
     }
 
     @MessageMapping("/chatRoom/{chatRoomId}/callAccepted")
     @SendTo("/topic/chatRoom/{chatRoomId}/callAccepted")
-    public WebRTCMessage acceptCall(
-            @RequestBody WebRTCMessage signalData) {
+    public WebRTCMessageDTO acceptCall(
+            @RequestBody WebRTCMessageDTO signalData) {
         return signalData;
     }
 
+    @MessageMapping("/chatRoom/{chatRoomId}/callEnded")
+    @SendTo("/topic/chatRoom/{chatRoomId}/callEnded")
+    public EndCallDTO sendEndCallRequest(@RequestBody EndCallDTO endCallDTO) {
+        return endCallDTO;
+    }
 
+    @MessageMapping("/chatRoom/{chatRoomId}/callDenied")
+    @SendTo("/topic/chatRoom/{chatRoomId}/callDenied")
+    public String sendDenyCallRequest() {
+        return "Phat dep trai";
+    }
 }
 
 
