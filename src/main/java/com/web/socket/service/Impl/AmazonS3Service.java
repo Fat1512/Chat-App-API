@@ -1,14 +1,8 @@
-package com.web.socket.config;
+package com.web.socket.service.Impl;
 
-import com.web.socket.entity.User;
-import com.web.socket.repository.UserRepository;
-import com.web.socket.utils.SecurityUtils;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -22,13 +16,13 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class AmazonClient {
+public class AmazonS3Service {
     private S3Client s3Client;
-    private final UserRepository userRepository;
-
     @Value("${aws.region}")
     private String regionName;
     @Value("${aws.bucket-name}")
@@ -51,22 +45,81 @@ public class AmazonClient {
     public String generateFileName(MultipartFile multiPart) {
         return new Date().getTime() + "-" + multiPart.getOriginalFilename().replace(" ", "_");
     }
-    public void uploadFileToS3(MultipartFile file) throws IOException {
-        Authentication authentication = SecurityUtils.getAuthentication();
-        String username = ((UserDetails) authentication.getPrincipal()).getUsername();
-        User authenticatedUser = userRepository.findByUsername(username).orElseThrow(() -> new BadCredentialsException("Invalid credential"));
 
-        String path = String.format("user-avt/%s", authenticatedUser.getId());
+    public String uploadImage(MultipartFile file, String path) throws IOException {
         s3Client.putObject(PutObjectRequest.builder()
                         .bucket(bucketName)
                         .key(path)
-                        .contentType("image/png")
+                        .contentType(file.getContentType())
                         .acl(ObjectCannedACL.PUBLIC_READ)
                         .build(),
                 RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
+        return String.format("https://%s.s3.%s.amazonaws.com/%s", bucketName, regionName, path);
+    }
 
-        String avtUrl = String.format("https://%s.s3.%s.amazonaws.com/%s", bucketName, regionName, path);
-        authenticatedUser.setAvatar(avtUrl);
-        userRepository.save(authenticatedUser);
+    public List<String> uploadMultipleImages(List<MultipartFile> files, String originalDirectory) throws IOException {
+        return files.stream().parallel().map(file -> {
+            try {
+                String path = String.format("%s/%s", originalDirectory, UUID.randomUUID().toString());
+                s3Client.putObject(PutObjectRequest.builder()
+                                .bucket(bucketName)
+                                .key(path)
+                                .contentType(file.getContentType())
+                                .acl(ObjectCannedACL.PUBLIC_READ)
+                                .build(),
+                RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
+                return String.format("https://%s.s3.%s.amazonaws.com/%s", bucketName, regionName, path);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }).toList();
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

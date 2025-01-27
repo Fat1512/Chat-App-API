@@ -1,6 +1,11 @@
 package com.web.socket.controller;
 
-import com.web.socket.dto.*;
+import com.web.socket.dto.EndCallDTO;
+import com.web.socket.dto.MessageEventDTO;
+import com.web.socket.dto.MessageStatusDTO;
+import com.web.socket.dto.WebRTCMessageDTO;
+import com.web.socket.dto.request.MessageRequest;
+import com.web.socket.dto.response.MessageResponse;
 import com.web.socket.entity.User;
 import com.web.socket.repository.UserRepository;
 import com.web.socket.service.ChatRoomService;
@@ -33,10 +38,10 @@ public class SocketController {
 
     @MessageMapping("/chatRoom/{chatRoomId}/sendMessage")
     @SendTo("/topic/chatRoom/{chatRoomId}/newMessages")
-    public MessageDTO sendMessage(
+    public MessageResponse sendMessage(
             @DestinationVariable String chatRoomId,
-            @RequestBody MessageDTO messageDTO) {
-        MessageDTO messageResponse = chatRoomService.pushMessageToChatRoom(messageDTO, chatRoomId);
+            @RequestBody() MessageRequest messageRequest) {
+        MessageResponse messageResponse = chatRoomService.pushMessageToChatRoom(messageRequest, chatRoomId);
         return messageResponse;
     }
 

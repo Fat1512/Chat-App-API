@@ -1,5 +1,6 @@
-package com.web.socket.dto;
+package com.web.socket.dto.response;
 
+import com.web.socket.dto.SingleProfileDTO;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;

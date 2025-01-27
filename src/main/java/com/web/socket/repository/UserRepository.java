@@ -12,4 +12,6 @@ public interface UserRepository extends MongoRepository<User, String> {
 
     @Query("{'id': {'$in': ?0}}")
     List<User> findByUserIds(List<String> userids);
+
+    boolean existsByIdAndChatRoomsId(String userId, String chatRoomId);
 }

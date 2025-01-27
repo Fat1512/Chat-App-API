@@ -22,7 +22,7 @@ public class Message {
     private String messageType;
     private String content;
     private Double timeSent;
-    private String imageUrl;
+    private List<String> imageUrl;
     private CallDetail callDetails;
     private VoiceDetail voiceDetail;
 

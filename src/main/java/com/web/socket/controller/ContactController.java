@@ -1,7 +1,7 @@
 package com.web.socket.controller;
 
-import com.web.socket.dto.ContactCreationRequest;
-import com.web.socket.dto.ContactResponse;
+import com.web.socket.dto.request.ContactCreationRequest;
+import com.web.socket.dto.response.ContactResponse;
 import com.web.socket.dto.response.APIResponse;
 import com.web.socket.service.ContactService;
 import com.web.socket.utils.APIResponseMessage;

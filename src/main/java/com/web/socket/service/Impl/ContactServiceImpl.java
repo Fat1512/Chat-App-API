@@ -1,7 +1,7 @@
 package com.web.socket.service.Impl;
 
-import com.web.socket.dto.ContactCreationRequest;
-import com.web.socket.dto.ContactResponse;
+import com.web.socket.dto.request.ContactCreationRequest;
+import com.web.socket.dto.response.ContactResponse;
 import com.web.socket.dto.SingleProfileDTO;
 import com.web.socket.entity.ChatRoom;
 import com.web.socket.entity.Contact;

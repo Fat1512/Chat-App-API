@@ -1,8 +1,13 @@
 package com.web.socket.controller;
 
 
-import com.web.socket.dto.*;
+import com.web.socket.dto.ChatRoomDetailDTO;
+import com.web.socket.dto.ChatRoomSummaryDTO;
+import com.web.socket.dto.GroupCreationDTO;
+import com.web.socket.dto.MessageStatusDTO;
+import com.web.socket.dto.request.MessageRequest;
 import com.web.socket.dto.response.APIResponse;
+import com.web.socket.dto.response.MessageResponse;
 import com.web.socket.service.ChatRoomService;
 import com.web.socket.utils.APIResponseMessage;
 import lombok.RequiredArgsConstructor;
@@ -51,8 +56,8 @@ public class ChatRoomController {
     }
 
     @PostMapping("/chatrooms/{chatRoomId}")
-    public ResponseEntity<APIResponse> pushMessageToChatRoom(@RequestBody MessageDTO messageDTO, @PathVariable String chatRoomId)  {
-        MessageDTO messageResponse = chatRoomService.pushMessageToChatRoom(messageDTO, chatRoomId);
+    public ResponseEntity<APIResponse> pushMessageToChatRoom(@RequestBody MessageRequest messageRequest, @PathVariable String chatRoomId)  {
+        MessageResponse messageResponse = chatRoomService.pushMessageToChatRoom(messageRequest, chatRoomId);
         APIResponse apiResponse = APIResponse.builder()
                 .status(HttpStatus.OK)
                 .message(APIResponseMessage.SUCCESSFULLY_UPDATED.name())

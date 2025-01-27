@@ -1,6 +1,7 @@
 package com.web.socket.dto;
 
 
+import com.web.socket.dto.response.MessageResponse;
 import com.web.socket.entity.RoomType;
 import lombok.Builder;
 import lombok.Getter;
@@ -21,6 +22,6 @@ public class ChatRoomDetailDTO {
     @Builder
     public static class MessageHistoryDTO {
         private Double day;
-        List<MessageDTO> messages;
+        List<MessageResponse> messages;
     }
 }

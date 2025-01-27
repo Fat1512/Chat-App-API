@@ -1,6 +1,6 @@
 package com.web.socket.controller;
 
-import com.web.socket.config.AmazonClient;
+import com.web.socket.service.Impl.AmazonS3Service;
 import com.web.socket.dto.UserProfileDTO;
 import com.web.socket.dto.response.APIResponse;
 import com.web.socket.service.UserService;
@@ -19,7 +19,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
-    private final AmazonClient amazonClient;
+    private final AmazonS3Service amazonS3Service;
     @GetMapping("/{userId}/profile")
     public ResponseEntity<?> getUserProfile(@PathVariable String userId) {
         UserProfileDTO userProfileDTO = userService.getProfile(userId);
@@ -44,11 +44,12 @@ public class UserController {
 
     @PostMapping("/upload-avt")
     public ResponseEntity<?> uploadAvatar(@RequestParam("file") MultipartFile file) throws IOException {
-        try {
-            amazonClient.uploadFileToS3(file);
-        } catch(IOException e) {
-            throw new RuntimeException("Failed to upload file");
-        }
+        int  i = 2;
+//        try {
+//            amazonS3Service.uploadFileToS3(file);
+//        } catch(IOException e) {
+//            throw new RuntimeException("Failed to upload file");
+//        }
         return null;
     }
 

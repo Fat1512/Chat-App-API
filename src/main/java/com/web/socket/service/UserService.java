@@ -5,5 +5,5 @@ import com.web.socket.dto.UserProfileDTO;
 public interface UserService {
     UserProfileDTO getProfile(String userId);
     UserProfileDTO getProfile() ;
-
+    Boolean isBelongToChatRoom(String chatRoomId);
 }

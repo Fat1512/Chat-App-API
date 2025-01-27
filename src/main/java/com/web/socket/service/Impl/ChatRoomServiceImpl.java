@@ -1,6 +1,8 @@
 package com.web.socket.service.Impl;
 
 import com.web.socket.dto.*;
+import com.web.socket.dto.request.MessageRequest;
+import com.web.socket.dto.response.MessageResponse;
 import com.web.socket.entity.*;
 import com.web.socket.exception.BadRequestException;
 import com.web.socket.exception.ResourceNotFoundException;
@@ -33,6 +35,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
     private final UserRepository userRepository;
     private final SimpMessagingTemplate simpMessagingTemplate;
     private final MongoTemplate mongoTemplate;
+    private final AmazonS3Service amazonS3Service;
 
     @Override
     @Transactional
@@ -51,14 +54,14 @@ public class ChatRoomServiceImpl implements ChatRoomService {
                     .orElse(null);
 
             //Newly created group chat doesn't have value but should be retrieved
-            MessageDTO lastestMessage = null;
+            MessageResponse lastestMessage = null;
             Integer TotalUnreadMessages = 0;
             if (message != null) {
 
                 Boolean deliveredStatus = message.getUndeliveredMembers().isEmpty();
                 Boolean readStatus = message.getUnreadMembers().isEmpty();
 
-                lastestMessage = MessageDTO.builder()
+                lastestMessage = MessageResponse.builder()
                         .id(message.getId())
                         .messageType(message.getMessageType())
                         .content(message.getContent())
@@ -124,7 +127,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
                 .stream()
                 .map(msgHistory -> {
                     Double day = msgHistory.getDay();
-                    List<MessageDTO> messages = msgHistory.getMessages().stream().map(msg -> MessageDTO
+                    List<MessageResponse> messages = msgHistory.getMessages().stream().map(msg -> MessageResponse
                             .builder()
                             .id(msg.getId())
                             .messageType(msg.getMessageType())
@@ -162,11 +165,11 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 
     @Override
     @Transactional
-    public MessageDTO pushMessageToChatRoom(MessageDTO messageDTO, String chatRoomId) {
-
+    public MessageResponse pushMessageToChatRoom(MessageRequest messageRequest, String chatRoomId) {
         Authentication authentication = SecurityUtils.getAuthentication();
         String username = ((UserDetails) authentication.getPrincipal()).getUsername();
-        User authenticatedUser = userRepository.findByUsername(username).orElseThrow(() -> new BadCredentialsException("Invalid credential"));
+        User authenticatedUser = userRepository.findByUsername(username)
+                .orElseThrow(() -> new BadCredentialsException("Invalid credential"));
 
         ChatRoom chatRoom = chatRoomRepository
                 .findById(chatRoomId)
@@ -174,17 +177,18 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 
         if (chatRoom.getMembers().stream()
                 .noneMatch(user -> user.getId().equals(authenticatedUser.getId()))) {
-            throw new BadRequestException("You are not allowed to perform this action");
+            throw new BadRequestException("Not allowed to perform this action");
         }
+
 
         Message message = Message
                 .builder()
-                .messageType(messageDTO.getMessageType())
-                .content(messageDTO.getContent())
-                .callDetails(messageDTO.getCallDetails())
-                .voiceDetail(messageDTO.getVoiceDetail())
+                .messageType(messageRequest.getMessageType())
+                .content(messageRequest.getContent())
+                .callDetails(messageRequest.getCallDetails())
+                .voiceDetail(messageRequest.getVoiceDetail())
                 .timeSent((double) Instant.now().toEpochMilli())
-                .imageUrl(messageDTO.getImageUrl())
+                .imageUrl(messageRequest.getImageUrl())
                 .sender(authenticatedUser).build();
 
         List<User> remainingMembers = chatRoom.getMembers().stream().filter(member -> {
@@ -210,7 +214,11 @@ public class ChatRoomServiceImpl implements ChatRoomService {
         Double today = (double) LocalDate.now().atStartOfDay(ZoneOffset.UTC) // Start of day in UTC
                 .toInstant().toEpochMilli();
 
-        ChatRoom.MessageHistory messageHistory = chatRoom.getMessageHistory().stream().filter(msgHistory -> msgHistory.getDay().equals(today)).findFirst().orElse(null);
+        ChatRoom.MessageHistory messageHistory = chatRoom.getMessageHistory()
+                .stream()
+                .filter(msgHistory -> msgHistory.getDay().equals(today))
+                .findFirst()
+                .orElse(null);
 
         if (messageHistory == null) {
             messageHistory = ChatRoom.MessageHistory
@@ -226,7 +234,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
         chatRoomRepository.save(chatRoom);
         userRepository.saveAll(remainingMembers);
 
-        return MessageDTO
+        return MessageResponse
                 .builder()
                 .id(message.getId())
                 .messageType(message.getMessageType())
@@ -244,26 +252,42 @@ public class ChatRoomServiceImpl implements ChatRoomService {
                 .build();
     }
 
+
     @Override
     @Transactional
     public List<MessageStatusDTO> markDeliveredMessages(String chatRoomId) {
         Authentication authentication = SecurityUtils.getAuthentication();
         String username = ((UserDetails) authentication.getPrincipal()).getUsername();
-        User authenticatedUser = userRepository.findByUsername(username).orElseThrow(() -> new BadCredentialsException("Invalid credential"));
+        User authenticatedUser = userRepository.findByUsername(username)
+                .orElseThrow(() -> new BadCredentialsException("Invalid credential"));
         log.info("current undelivered authenticated user: {}", username);
 
-        ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId).orElseThrow(() -> new ResourceNotFoundException("Chat room doesn't exist"));
+        ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
+                .orElseThrow(() -> new ResourceNotFoundException("Chat room doesn't exist"));
 
 
-        List<String> undeliveredMessageIds = authenticatedUser.getUndeliveredMessages().stream().filter(undeliveredMessage -> undeliveredMessage.getChatRoomId().equals(chatRoomId)).map(UndeliveredMessage::getMessageId).toList();
+        List<String> undeliveredMessageIds = authenticatedUser.getUndeliveredMessages()
+                .stream()
+                .filter(undeliveredMessage -> undeliveredMessage.getChatRoomId().equals(chatRoomId))
+                .map(UndeliveredMessage::getMessageId)
+                .toList();
 
         //Remove all the undelivered messages from current user
-        authenticatedUser.getUndeliveredMessages().removeIf(undeliveredMessage -> undeliveredMessageIds.contains(undeliveredMessage.getMessageId()));
+        authenticatedUser.getUndeliveredMessages()
+                .removeIf(undeliveredMessage -> undeliveredMessageIds.contains(undeliveredMessage.getMessageId()));
 
         //Remove undelivered user from chat room's messages
-        List<MessageStatusDTO> messageStatusList = chatRoom.getMessageHistory().stream().flatMap(msgHistory -> msgHistory.getMessages().stream()).filter(filteredMsg -> undeliveredMessageIds.contains(filteredMsg.getId())).map(msg -> {
+        List<MessageStatusDTO> messageStatusList = chatRoom.getMessageHistory().stream()
+                .flatMap(msgHistory -> msgHistory.getMessages().stream())
+                .filter(filteredMsg -> undeliveredMessageIds.contains(filteredMsg.getId())).map(msg -> {
             msg.getUndeliveredMembers().removeIf(unreadMem -> unreadMem.getId().equals(authenticatedUser.getId()));
-            return MessageStatusDTO.builder().chatRoomId(chatRoomId).messageId(msg.getId()).unreadMembers(msg.getUnreadMembers().stream().map(User::getId).toList()).undeliveredMembers(msg.getUndeliveredMembers().stream().map(User::getId).toList()).senderId(authenticatedUser.getId()).build();
+            return MessageStatusDTO.builder()
+                    .chatRoomId(chatRoomId)
+                    .messageId(msg.getId())
+                    .unreadMembers(msg.getUnreadMembers().stream().map(User::getId).toList())
+                    .undeliveredMembers(msg.getUndeliveredMembers().stream().map(User::getId).toList())
+                    .senderId(authenticatedUser.getId())
+                    .build();
         }).toList();
 
         chatRoomRepository.save(chatRoom);

@@ -1,4 +1,4 @@
-package com.web.socket.dto;
+package com.web.socket.dto.response;
 
 import com.web.socket.entity.Message;
 import lombok.*;
@@ -10,12 +10,12 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MessageDTO {
+public class MessageResponse {
     private String id;
     private String messageType;
     private String content;
     private Double timeSent;
-    private String imageUrl;
+    private List<String> imageUrl;
     private Message.CallDetail callDetails;
     private Message.VoiceDetail voiceDetail;
 

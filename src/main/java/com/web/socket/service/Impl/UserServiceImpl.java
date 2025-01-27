@@ -8,6 +8,10 @@ import com.web.socket.repository.UserRepository;
 import com.web.socket.service.UserService;
 import com.web.socket.utils.SecurityUtils;
 import lombok.RequiredArgsConstructor;
+import org.bson.types.ObjectId;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -22,7 +26,7 @@ import java.util.Collection;
 public class UserServiceImpl implements UserService, UserDetailsService {
 
     private final UserRepository userRepository;
-
+    private final MongoTemplate mongoTemplate;
     @Override
     public UserDetails loadUserByUsername(String username) {
         User user = userRepository.findByUsername(username).orElseThrow(() -> new InvalidCredential("User not found"));
@@ -64,7 +68,17 @@ public class UserServiceImpl implements UserService, UserDetailsService {
                 .build();
     }
 
+    @Override
+    public Boolean isBelongToChatRoom(String chatRoomId) {
+        Authentication authentication = SecurityUtils.getAuthentication();
+        String username = ((UserDetails) authentication.getPrincipal()).getUsername();
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("user doesn't exist"));
 
+        Query query = new Query();
+        query.addCriteria(Criteria.where("_id").is(user.getId()).and("chatRooms").in(new ObjectId(chatRoomId)));
+        return mongoTemplate.exists(query, User.class);
+    }
 }
 
 
