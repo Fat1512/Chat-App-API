@@ -17,7 +17,9 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -27,6 +29,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
     private final UserRepository userRepository;
     private final MongoTemplate mongoTemplate;
+    private final AmazonS3Service amazonS3Service;
     @Override
     public UserDetails loadUserByUsername(String username) {
         User user = userRepository.findByUsername(username).orElseThrow(() -> new InvalidCredential("User not found"));
@@ -78,6 +81,19 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         Query query = new Query();
         query.addCriteria(Criteria.where("_id").is(user.getId()).and("chatRooms").in(new ObjectId(chatRoomId)));
         return mongoTemplate.exists(query, User.class);
+    }
+
+    @Override
+    public String uploadAvatar(MultipartFile multipartFile) throws IOException {
+        Authentication authentication = SecurityUtils.getAuthentication();
+        String username = ((UserDetails) authentication.getPrincipal()).getUsername();
+        User authenticatedUser = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("user doesn't exist"));
+
+        String avatarUrl = amazonS3Service.uploadImage(multipartFile, String.format("user-avt/%s", authenticatedUser.getId()));
+        authenticatedUser.setAvatar(avatarUrl);
+        userRepository.save(authenticatedUser);
+        return avatarUrl;
     }
 }
 

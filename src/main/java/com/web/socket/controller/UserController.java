@@ -44,13 +44,12 @@ public class UserController {
 
     @PostMapping("/upload-avt")
     public ResponseEntity<?> uploadAvatar(@RequestParam("file") MultipartFile file) throws IOException {
-        int  i = 2;
-//        try {
-//            amazonS3Service.uploadFileToS3(file);
-//        } catch(IOException e) {
-//            throw new RuntimeException("Failed to upload file");
-//        }
-        return null;
+        String avatarUrl = userService.uploadAvatar(file);
+        APIResponse apiResponse = APIResponse.builder()
+                .status(HttpStatus.OK)
+                .message(APIResponseMessage.SUCCESSFULLY_RETRIEVED.name())
+                .data(avatarUrl)
+                .build();
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
-
 }
