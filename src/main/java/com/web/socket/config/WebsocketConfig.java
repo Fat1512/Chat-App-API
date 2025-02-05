@@ -2,8 +2,10 @@ package com.web.socket.config;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.web.socket.entity.Token;
 import com.web.socket.service.Impl.JwtService;
 import com.web.socket.service.Impl.UserServiceImpl;
+import com.web.socket.service.TokenService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
@@ -32,6 +34,8 @@ import org.springframework.web.socket.config.annotation.WebSocketTransportRegist
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Configuration
 @EnableWebSocketMessageBroker
@@ -42,6 +46,7 @@ import java.util.List;
 public class WebsocketConfig implements WebSocketMessageBrokerConfigurer {
 
     private final JwtService jwtService;
+    private final TokenService tokenService;
     private final UserServiceImpl userService;
 //    private final TaskScheduler messageBrokerTaskScheduler;
 //    private final ThreadPoolTaskExecutor taskExecutor;
@@ -91,29 +96,43 @@ public class WebsocketConfig implements WebSocketMessageBrokerConfigurer {
                 StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
                 log.info("Headers: {}", accessor);
                 if (StompCommand.DISCONNECT.equals(accessor.getCommand())) {
-//        messagingTemplate.convertAndSend("/topic/status", "User disconnected: " + sessionId);
                     log.info("ignore disconnect frame to avoid double disconnect: {}", message);
                 }
                 if (StompCommand.CONNECT.equals(accessor.getCommand())
                         || StompCommand.SUBSCRIBE.equals(accessor.getCommand())
                         || StompCommand.SEND.equals(accessor.getCommand())) {
                     String token = accessor.getFirstNativeHeader("Authorization");
-
                     token = jwtService.extractToken(token);
                     if (jwtService.validateToken(token)) {
+
                         String username = jwtService.extractUsername(token);
-//            Token redisToken = tokenService.get(jwtService.extractUuid(token));
+                        String userKey = jwtService.extractUserId(token);
+                        String uuid = jwtService.extractUuid(token);
+
                         UserDetails userDetails = userService.loadUserByUsername(username);
-                        if (userDetails != null
-//                    && redisToken != null
-                        ) {
+                        List<Token> tokens = tokenService.findAllByUserKey(userKey);
+                        if(tokens == null || tokens.isEmpty()) return message;
+
+                        Map<Boolean, List<Token>> partitionedTokens = tokens.stream()
+                                .collect(Collectors
+                                        .partitioningBy(filterToken -> filterToken.getUuid().equals(uuid)));
+
+                        Token redisToken = partitionedTokens.get(true)
+                                .stream()
+                                .findFirst()
+                                .orElse(null);
+
+                        if (userDetails != null && redisToken != null) {
+                            List<Token> remainingTokens = partitionedTokens.get(false);
+                            if(!remainingTokens.isEmpty()) {
+                                tokenService.deleteAll(remainingTokens);
+                            }
+
                             UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                             SecurityContextHolder.getContext().setAuthentication(authToken);
-//                            SecurityContext context = SecurityContextHolder.createEmptyContext();
-//                            context.setAuthentication(authToken);
-//                            SecurityContextHolder.getContextHolderStrategy().setContext(context);
                             accessor.setUser(authToken);
                         }
+
                     }
                 }
 

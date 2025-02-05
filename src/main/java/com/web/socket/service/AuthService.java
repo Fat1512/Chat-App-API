@@ -7,4 +7,6 @@ import com.web.socket.dto.UserAuthDTO;
 public interface AuthService {
     UserAuthDTO login(LoginRequest loginRequest);
     void register(RegisterRequest registerRequest);
+    void logout();
+    void test();
 }

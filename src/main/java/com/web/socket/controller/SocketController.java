@@ -1,9 +1,6 @@
 package com.web.socket.controller;
 
-import com.web.socket.dto.EndCallDTO;
-import com.web.socket.dto.MessageEventDTO;
-import com.web.socket.dto.MessageStatusDTO;
-import com.web.socket.dto.WebRTCMessageDTO;
+import com.web.socket.dto.*;
 import com.web.socket.dto.request.MessageRequest;
 import com.web.socket.dto.response.MessageResponse;
 import com.web.socket.entity.User;
@@ -11,6 +8,7 @@ import com.web.socket.repository.UserRepository;
 import com.web.socket.service.ChatRoomService;
 import com.web.socket.utils.SecurityUtils;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.java.Log;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -18,6 +16,7 @@ import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -82,7 +81,8 @@ public class SocketController {
     @SendTo("/topic/chatRoom/{chatRoomId}/message/deliveredStatus")
     public List<MessageStatusDTO> markAsDeliveredMessage(
             @DestinationVariable String chatRoomId) {
-        List<MessageStatusDTO> messageStatusDTOList = chatRoomService.markDeliveredMessages(chatRoomId);
+        List<MessageStatusDTO> messageStatusDTOList = chatRoomService
+                .markDeliveredMessages(chatRoomId);
         return messageStatusDTOList;
     }
 
@@ -110,6 +110,13 @@ public class SocketController {
     @SendTo("/topic/chatRoom/{chatRoomId}/callDenied")
     public String sendDenyCallRequest() {
         return "Phat dep trai";
+    }
+
+    @MessageMapping("/login/{userId}/send")
+    @SendTo("/topic/login/{userId}/send")
+    public LoginEvent sendToken(@RequestBody LoginEvent loginEvent) {
+        log.info("LoginEvent {}", loginEvent);
+        return loginEvent;
     }
 }
 

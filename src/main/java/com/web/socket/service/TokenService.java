@@ -1,8 +1,14 @@
 package com.web.socket.service;
 
+import com.web.socket.entity.Token;
+
+import java.util.List;
+
 public interface TokenService {
-//    void save(Token token);
-//    void delete(String uuid);
-//    Token get(String uuid);
-//    void invalidateAllUserToken(Integer userId);
+    void save(Token token);
+    void delete(String uuid);
+    void deleteAll(List<Token> tokens);
+    Token get(String uuid);
+    List<Token> findAllByUserKey(String userKey);
+    void invalidateAllUserToken(String userId);
 }

@@ -33,7 +33,7 @@ public class JwtService {
     }
 
     public String extractUserId(String token) {
-        return extractClaim(token, Claims::getId);
+        return extractClaim(token, (claims -> claims.get("userKey", String.class)));
     }
 
     public String extractUuid(String token) {
@@ -66,16 +66,18 @@ public class JwtService {
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date())
                 .setExpiration(expirationTime)
-//                .claim("role", userDetails.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList()))
                 .signWith(getSignInKey())
                 .compact();
     }
 
-    public TokenDTO generateToken(UserDetails userDetails) {
+    public TokenDTO generateToken(UserDetails userDetails, String userKey) {
         Date now = new Date();
 
         UUID uuid = UUID.randomUUID();
-        Map<String, Object> extraClaims = new HashMap<>() {{put("uuid", uuid);}};
+        Map<String, Object> extraClaims = new HashMap<>() {{
+            put("uuid", uuid);
+            put("userKey", userKey);
+        }};
 
         Date accessTokenExpirationTime = new Date(now.getTime() * expirationTime);
         Date refreshTokenExpirationTime = new Date(now.getTime() * refreshTime);
@@ -84,7 +86,7 @@ public class JwtService {
         String accessToken = generateToken(extraClaims, userDetails, accessTokenExpirationTime);
 
         return TokenDTO.builder()
-//                .uuid(uuid.toString())
+                .uuid(uuid.toString())
                 .refreshToken(refreshToken)
                 .accessToken(accessToken)
                 .build();

@@ -38,7 +38,6 @@ public class ChatRoomServiceImpl implements ChatRoomService {
     private final AmazonS3Service amazonS3Service;
 
     @Override
-    @Transactional
     public List<ChatRoomSummaryDTO> getChatRoomSummary() {
         Authentication authentication = SecurityUtils.getAuthentication();
         String username = ((UserDetails) authentication.getPrincipal()).getUsername();
@@ -296,6 +295,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
     }
 
     @Override
+    @Transactional
     public List<MessageStatusDTO> markReadMessages(String chatRoomId) {
         Authentication authentication = SecurityUtils.getAuthentication();
         String username = ((UserDetails) authentication.getPrincipal()).getUsername();
@@ -385,6 +385,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
     }
 
     @Override //Haven't checked the appropriate contact list
+    @Transactional
     public void createGroup(GroupCreationDTO groupCreationDTO) {
         Authentication authentication = SecurityUtils.getAuthentication();
         String username = ((UserDetails) authentication.getPrincipal()).getUsername();

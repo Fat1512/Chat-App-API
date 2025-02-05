@@ -2,6 +2,7 @@ package com.web.socket;
 
 //import com.web.socket.repository.ParentRepository;
 
+import com.web.socket.entity.Parent;
 import com.web.socket.repository.ChildRepository;
 import com.web.socket.repository.ParentRepository;
 import io.github.cdimascio.dotenv.Dotenv;
@@ -38,6 +39,13 @@ public class SocketApplication implements CommandLineRunner {
 	@Override
 	@Transactional
 	public void run(String... args) throws Exception {
+
+//		Parent p = Parent
+//				.builder()
+//				.userName("username_1")
+//				.build();
+//		mongoTemplate.save(p);
+//		throw new Exception("nono");
 //		Contact contact1 = Contact.builder().name("Phat").build();
 //		Contact contact2 = Contact.builder().name("Le").build();
 //

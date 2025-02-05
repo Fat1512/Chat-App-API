@@ -1,13 +1,25 @@
 package com.web.socket.controller;
 
 
+import com.web.socket.service.testService;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v1/test")
+@RequiredArgsConstructor
 public class TestController {
 
+    private final testService service;
+
+    @GetMapping("/")
+    public void x() throws Exception {
+        service.test();
+    }
 //    @PostMapping("/gemini")
 //    public ResponseEntity<APIResponse> sendMessage(@RequestBody GeminiRequest geminiRequest) {
 //        String projectId = "totemic-ally-417012";

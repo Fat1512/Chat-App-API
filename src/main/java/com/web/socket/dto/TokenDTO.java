@@ -1,5 +1,6 @@
 package com.web.socket.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 
 @Setter @Getter
@@ -9,6 +10,6 @@ import lombok.*;
 public class TokenDTO {
     private String accessToken;
     private String refreshToken;
-//    @JsonIgnore
-//    private String uuid;
+    @JsonIgnore
+    private String uuid;
 }
