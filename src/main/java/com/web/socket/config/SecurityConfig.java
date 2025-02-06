@@ -11,7 +11,6 @@ import org.springframework.core.annotation.Order;
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
 import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -23,7 +22,7 @@ import org.springframework.security.web.access.channel.ChannelProcessingFilter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @EnableWebSecurity(debug = true)
-@EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true)
+//@EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true)
 @Configuration
 @RequiredArgsConstructor
 @ComponentScan("com.web.socket.config")
@@ -31,6 +30,8 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final CORSFilter CORSFilter;
     private final AuthenticationProvider authenticationProvider;
+    private final CustomAccessDeniedException customerAccessDeniedException;
+    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
 
     @Bean
     static SecurityContextHolderStrategy securityContextHolderStrategy() {
@@ -52,20 +53,19 @@ public class SecurityConfig {
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(CORSFilter, ChannelProcessingFilter.class);
         http.cors(AbstractHttpConfigurer::disable);
-        http.csrf(AbstractHttpConfigurer::disable)
-            .authorizeHttpRequests(request -> {
+
+        http.authorizeHttpRequests(request -> {
             request.requestMatchers("/api/v1/auth/**", "/ws/**").permitAll();
+            request.requestMatchers(
+                    "api/v1/auth/logout",
+                    "api/v1/auth/password").authenticated();
             request.anyRequest().authenticated();
             }).formLogin(AbstractHttpConfigurer::disable)
-                .httpBasic(AbstractHttpConfigurer::disable);
-
-//        http
-//            .csrf(csrf -> csrf.disable())
-//            .authorizeHttpRequests(auth -> auth
-//                    .anyRequest().permitAll())
-//            .formLogin(form -> form.disable())
-//            .httpBasic(Customizer.withDefaults());
-
+                .httpBasic(AbstractHttpConfigurer::disable)
+                .exceptionHandling(exception -> {
+                    exception.authenticationEntryPoint(customAuthenticationEntryPoint);
+                    exception.accessDeniedHandler(customerAccessDeniedException);
+                });
         return http.build();
     }
 

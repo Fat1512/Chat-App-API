@@ -51,11 +51,10 @@ public class SocketController {
         String username = ((UserDetails) authentication.getPrincipal()).getUsername();
         User authenticatedUser = userRepository.findByUsername(username).orElseThrow(() -> new BadCredentialsException("Invalid credential"));
 
-        MessageEventDTO messageEventDTO =
-                MessageEventDTO.builder()
-                        .senderId(authenticatedUser.getId())
-                        .mode("Typing...").build();
-        return messageEventDTO;
+
+        return MessageEventDTO.builder()
+                .senderId(authenticatedUser.getId())
+                .mode("Typing...").build();
     }
 
     @MessageMapping("/disconnect")
@@ -72,18 +71,16 @@ public class SocketController {
     @SendTo("/topic/chatRoom/{chatRoomId}/message/readStatus")
     public List<MessageStatusDTO> markAsReadMessage(
             @DestinationVariable String chatRoomId) {
-        List<MessageStatusDTO> messageStatusDTOList = chatRoomService
+        return chatRoomService
                 .markReadMessages(chatRoomId);
-        return messageStatusDTOList;
     }
 
     @MessageMapping("/chatRoom/{chatRoomId}/markAsDelivered")
     @SendTo("/topic/chatRoom/{chatRoomId}/message/deliveredStatus")
     public List<MessageStatusDTO> markAsDeliveredMessage(
             @DestinationVariable String chatRoomId) {
-        List<MessageStatusDTO> messageStatusDTOList = chatRoomService
+        return chatRoomService
                 .markDeliveredMessages(chatRoomId);
-        return messageStatusDTOList;
     }
 
     @MessageMapping("/chatRoom/{chatRoomId}/callRequest")
@@ -109,7 +106,7 @@ public class SocketController {
     @MessageMapping("/chatRoom/{chatRoomId}/callDenied")
     @SendTo("/topic/chatRoom/{chatRoomId}/callDenied")
     public String sendDenyCallRequest() {
-        return "Phat dep trai";
+        return "Denied request";
     }
 
     @MessageMapping("/login/{userId}/send")

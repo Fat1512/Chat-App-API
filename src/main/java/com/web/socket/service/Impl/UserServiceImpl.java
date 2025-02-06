@@ -41,6 +41,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         return new org.springframework.security.core.userdetails.User(user.getUsername(), user.getPassword(), authorities);
     }
 
+
     @Override
     public UserProfileDTO getProfile(String userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("user doesn't exist"));

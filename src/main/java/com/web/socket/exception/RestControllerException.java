@@ -1,8 +1,10 @@
 package com.web.socket.exception;
 
 import com.web.socket.dto.response.ExceptionResponse;
+import io.jsonwebtoken.MalformedJwtException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -11,6 +13,19 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 @ControllerAdvice
 public class RestControllerException {
+
+    @ExceptionHandler
+    public ResponseEntity<ExceptionResponse> resolveAccessDeniedException(AccessDeniedException exception) {
+        ExceptionResponse response = ExceptionResponse.builder()
+                .error(HttpStatus.NOT_FOUND.getReasonPhrase())
+                .message(exception.getMessage())
+                .timestamp(System.currentTimeMillis())
+                .status(HttpStatus.FORBIDDEN.value())
+                .build();
+
+        return new ResponseEntity<>(response,HttpStatus.FORBIDDEN);
+    }
+
     @ExceptionHandler
     public ResponseEntity<ExceptionResponse> resolveResourceNotFound(ResourceNotFoundException exception) {
         ExceptionResponse response = ExceptionResponse.builder()

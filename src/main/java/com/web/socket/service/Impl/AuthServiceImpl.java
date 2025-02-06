@@ -5,8 +5,12 @@ import com.web.socket.dto.request.LoginRequest;
 import com.web.socket.dto.request.RegisterRequest;
 import com.web.socket.dto.TokenDTO;
 import com.web.socket.dto.UserAuthDTO;
+import com.web.socket.entity.BlockToken;
 import com.web.socket.entity.Token;
 import com.web.socket.entity.User;
+import com.web.socket.exception.InvalidJwtTokenException;
+import com.web.socket.exception.OverlapResourceException;
+import com.web.socket.repository.BlockTokenRedisRepository;
 import com.web.socket.repository.TokenRedisRepository;
 import com.web.socket.repository.UserRepository;
 import com.web.socket.service.AuthService;
@@ -25,7 +29,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -35,9 +41,11 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final AuthenticationManager authenticationManager;
     private final PasswordEncoder passwordEncoder;
-    private final JwtService jwtService;
-    private final TokenService tokenService;
+
     private final TokenRedisRepository tokenRedisRepository;
+    private final BlockTokenRedisRepository blockTokenRedisRepository;
+
+    private final JwtService jwtService;
 
     @Value(value = "${app.token.expirationTime}")
     private int expirationTime;
@@ -67,7 +75,7 @@ public class AuthServiceImpl implements AuthService {
                 .timeToLive(expirationTime)
                 .build();
 
-        tokenService.save(redisToken);
+        tokenRedisRepository.save(redisToken);
         return UserAuthDTO.builder()
                 .id(user.getId())
                 .onlineStatus(true)
@@ -78,6 +86,11 @@ public class AuthServiceImpl implements AuthService {
                 .isAuthenticated(true)
                 .tokenDTO(tokenDTO)
                 .build();
+    }
+
+    @Override
+    public TokenDTO changePassword(String newPassword, String oldPassword, Boolean isLogAllOut) {
+        return null;
     }
 
     @Override
@@ -119,21 +132,72 @@ public class AuthServiceImpl implements AuthService {
         log.info("logout: {}", authenticatedUser.getId());
         List<Token> tokens = tokenRedisRepository.findAllByUserKey(authenticatedUser.getId());
         tokenRedisRepository.deleteAllById(tokens.stream().map(Token::getUuid).toList());
+        blockTokenRedisRepository.saveAll(tokens.stream()
+                .map(token -> BlockToken.builder()
+                        .uuid(token.getUuid())
+                        .userKey(token.getUserKey())
+                        .build()).toList());
     }
 
     @Override
     @Transactional
-    public void test() {
-//        Authentication authentication = SecurityUtils.getAuthentication();
-//        String username = ((UserDetails) authentication.getPrincipal()).getUsername();
-//        User authenticatedUser = userRepository.findByUsername(username)
-//                .orElseThrow(() -> new BadCredentialsException("Invalid credential"));
-//
-//        log.info("logout: {}", authenticatedUser.getId());
-//        List<Token> tokens = tokenRedisRepository.findByUserKey(authenticatedUser.getId());
-//        tokenRedisRepository.deleteAllById(tokens.stream().map(Token::getUuid).toList());
+    public TokenDTO refreshToken(String refreshToken) {
+
+        String uuid = jwtService.extractUuid(refreshToken);
+        if(uuid == null)
+            throw new InvalidJwtTokenException("Bad refresh token !");
+
+        if (!jwtService.validateToken(refreshToken))
+            throw new InvalidJwtTokenException("Refresh token invalid or expired");
+
+
+
+        Optional<Token> token = tokenRedisRepository.findById(uuid);
+        if (token.isPresent())
+            throw new OverlapResourceException("Access key is still valid !");
+
+        Optional<BlockToken> blockToken = blockTokenRedisRepository.findById(uuid);
+        if(blockToken.isPresent())
+            throw new InvalidJwtTokenException("Access token cannot be requested");
+
+
+
+        User user = userRepository.findByUsername(jwtService.extractUsername(refreshToken))
+                .orElseThrow(() -> new InvalidJwtTokenException("Bad JWT credentials info"));
+
+        TokenDTO tokenResponse = jwtService
+                .generateToken(new org.springframework.security.core.userdetails.
+                                User(user.getUsername(), user.getPassword(), new ArrayList<>()), user.getId());
+
+        token = Optional.ofNullable(Token.builder()
+                .uuid(tokenResponse.getUuid())
+                .userKey(user.getId())
+                .timeToLive(expirationTime)
+                .build());
+
+        tokenRedisRepository.save(token.get());
+        tokenRedisRepository.deleteById(uuid);
+        return tokenResponse;
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

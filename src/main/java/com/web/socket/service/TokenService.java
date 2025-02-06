@@ -11,4 +11,6 @@ public interface TokenService {
     Token get(String uuid);
     List<Token> findAllByUserKey(String userKey);
     void invalidateAllUserToken(String userId);
+    void deleteExceptCurrentToken(String userId, String uuid);
+    void addBlockTokens(List<Token> tokens);
 }

@@ -97,8 +97,10 @@ public class JwtService {
     }
 
     private Boolean isTokenExpired(String token) {
-        return extractExpiration(token).before(new Date());
+        return true;
+//        return extractExpiration(token).before(new Date());
     }
+
 
     public Boolean validateToken(String token) {
         if(token == null || token.trim().isEmpty()) return false;
