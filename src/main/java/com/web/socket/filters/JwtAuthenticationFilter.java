@@ -46,35 +46,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             //Validate the expired date, necessary field...
             if(jwtService.validateToken(token)) {
                 String username = jwtService.extractUsername(token);
-                String userKey = jwtService.extractUserId(token);
                 String uuid = jwtService.extractUuid(token);
+                Token redisToken = tokenService.get(uuid);
 
-                List<Token> tokens = tokenService.findAllByUserKey(userKey);
-
-                /***
-                 * Check the redis storage cuz the token might be deleted by other logged-in sessions
-                 * Ensure the integrity in case token is leaked and called via API
-                 */
-                if (tokens == null || tokens.isEmpty())
+                if (redisToken == null)
                     throw new AccessDeniedException("Token not existed");
-
-                //Separate the tokens into 2 list to ensure only 1 logged-in user at the same time
-                Map<Boolean, List<Token>> partitionedTokens = tokens.stream()
-                        .collect(Collectors.partitioningBy(filterToken -> filterToken.getUuid().equals(uuid)));
-
-                partitionedTokens.get(true)
-                        .stream()
-                        .findFirst()
-                        .orElseThrow(() -> new AccessDeniedException("Token not existed"));
 
                 UserDetails userDetails = userService.loadUserByUsername(username);
                 if (userDetails != null) {
-                    List<Token> remainingTokens = partitionedTokens.get(false);
-                    if (!remainingTokens.isEmpty()) {
-                        tokenService.deleteAll(remainingTokens);
-                        tokenService.addBlockTokens(remainingTokens);
-                    }
-
                     UsernamePasswordAuthenticationToken authToken =
                             new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));

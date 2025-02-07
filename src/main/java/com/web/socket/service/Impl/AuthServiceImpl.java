@@ -8,6 +8,7 @@ import com.web.socket.dto.UserAuthDTO;
 import com.web.socket.entity.BlockToken;
 import com.web.socket.entity.Token;
 import com.web.socket.entity.User;
+import com.web.socket.exception.BadRequestException;
 import com.web.socket.exception.InvalidJwtTokenException;
 import com.web.socket.exception.OverlapResourceException;
 import com.web.socket.repository.BlockTokenRedisRepository;
@@ -144,6 +145,7 @@ public class AuthServiceImpl implements AuthService {
     public TokenDTO refreshToken(String refreshToken) {
 
         String uuid = jwtService.extractUuid(refreshToken);
+        String userId = jwtService.extractUserId(refreshToken);
         if(uuid == null)
             throw new InvalidJwtTokenException("Bad refresh token !");
 
@@ -154,13 +156,15 @@ public class AuthServiceImpl implements AuthService {
 
         Optional<Token> token = tokenRedisRepository.findById(uuid);
         if (token.isPresent())
-            throw new OverlapResourceException("Access key is still valid !");
+            throw new InvalidJwtTokenException("Access key is still valid !");
 
         Optional<BlockToken> blockToken = blockTokenRedisRepository.findById(uuid);
         if(blockToken.isPresent())
             throw new InvalidJwtTokenException("Access token cannot be requested");
 
-
+        if(!tokenRedisRepository.findAllByUserKey((userId)).isEmpty()) {
+            throw new BadRequestException("User already has key before !");
+        }
 
         User user = userRepository.findByUsername(jwtService.extractUsername(refreshToken))
                 .orElseThrow(() -> new InvalidJwtTokenException("Bad JWT credentials info"));
@@ -174,7 +178,7 @@ public class AuthServiceImpl implements AuthService {
                 .userKey(user.getId())
                 .timeToLive(expirationTime)
                 .build());
-
+        log.info("refresh token: {}", uuid);
         tokenRedisRepository.save(token.get());
         tokenRedisRepository.deleteById(uuid);
         return tokenResponse;

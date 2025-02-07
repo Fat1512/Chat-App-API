@@ -1,6 +1,7 @@
 package com.web.socket.service.Impl;
 
 import com.web.socket.dto.UserProfileDTO;
+import com.web.socket.entity.ChatRoom;
 import com.web.socket.entity.User;
 import com.web.socket.exception.InvalidCredential;
 import com.web.socket.exception.ResourceNotFoundException;
@@ -47,12 +48,13 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("user doesn't exist"));
         return UserProfileDTO
                 .builder()
-                .id(user.getId().toString())
+                .id(user.getId())
                 .onlineStatus(user.getStatus().isOnline())
                 .avt(user.getAvatar())
                 .bio(user.getBio())
                 .name(user.getName())
                 .username(user.getUsername())
+                .chatRoomIds(user.getChatRooms().stream().map(ChatRoom::getId).toList())
                 .build();
     }
 
@@ -60,15 +62,18 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     public UserProfileDTO getProfile()  {
         Authentication authentication = SecurityUtils.getAuthentication();
         String username = ((UserDetails) authentication.getPrincipal()).getUsername();
-        User user = userRepository.findByUsername(username).orElseThrow(() -> new ResourceNotFoundException("user doesn't exist"));
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("user doesn't exist"));
+
         return UserProfileDTO
                 .builder()
-                .id(user.getId().toString())
+                .id(user.getId())
                 .onlineStatus(user.getStatus().isOnline())
                 .avt(user.getAvatar())
                 .bio(user.getBio())
                 .name(user.getName())
                 .username(user.getUsername())
+                .chatRoomIds(user.getChatRooms().stream().map(ChatRoom::getId).toList())
                 .build();
     }
 

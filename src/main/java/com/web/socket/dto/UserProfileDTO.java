@@ -5,6 +5,9 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+import java.util.Set;
+
 @Builder
 @Getter
 @Setter
@@ -15,4 +18,5 @@ public class UserProfileDTO {
     private String username;
     private String bio;
     private String avt;
+    private List<String> chatRoomIds;
 }

@@ -3,6 +3,7 @@ package com.web.socket.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.web.socket.entity.Token;
+import com.web.socket.exception.InvalidCredential;
 import com.web.socket.service.Impl.JwtService;
 import com.web.socket.service.Impl.UserServiceImpl;
 import com.web.socket.service.TokenService;
@@ -23,6 +24,7 @@ import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -102,38 +104,26 @@ public class WebsocketConfig implements WebSocketMessageBrokerConfigurer {
                         || StompCommand.SUBSCRIBE.equals(accessor.getCommand())
                         || StompCommand.SEND.equals(accessor.getCommand())) {
                     String token = accessor.getFirstNativeHeader("Authorization");
+                    if(token == null)
+                        throw new InvalidCredential("Empty token !");
                     token = jwtService.extractToken(token);
                     if (jwtService.validateToken(token)) {
-
                         String username = jwtService.extractUsername(token);
-                        String userKey = jwtService.extractUserId(token);
                         String uuid = jwtService.extractUuid(token);
+                        Token redisToken = tokenService.get(uuid);
+
+                        if (redisToken == null)
+                            throw new AccessDeniedException("Token not existed");
 
                         UserDetails userDetails = userService.loadUserByUsername(username);
-                        List<Token> tokens = tokenService.findAllByUserKey(userKey);
-                        if(tokens == null || tokens.isEmpty()) return message;
-
-                        Map<Boolean, List<Token>> partitionedTokens = tokens.stream()
-                                .collect(Collectors
-                                        .partitioningBy(filterToken -> filterToken.getUuid().equals(uuid)));
-
-                        Token redisToken = partitionedTokens.get(true)
-                                .stream()
-                                .findFirst()
-                                .orElse(null);
-
-                        if (userDetails != null && redisToken != null) {
-                            List<Token> remainingTokens = partitionedTokens.get(false);
-                            if(!remainingTokens.isEmpty()) {
-                                tokenService.deleteAll(remainingTokens);
-                            }
-
+                        if (userDetails != null) {
                             UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                             SecurityContextHolder.getContext().setAuthentication(authToken);
                             accessor.setUser(authToken);
-                        }
-
-                    }
+                        } else
+                            throw new InvalidCredential("User doesn't exist");
+                    } else
+                        throw new AccessDeniedException("Invalid token");
                 }
 
                 return message;

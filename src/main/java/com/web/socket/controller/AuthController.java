@@ -74,6 +74,7 @@ public class AuthController {
     @PostMapping("/logout")
     public ResponseEntity<APIResponse> logout() {
         authService.logout();
+
         APIResponse apiResponse = APIResponse.builder()
                 .status(HttpStatus.OK)
                 .message(APIResponseMessage.SUCCESSFULLY_LOGOUT.name())
