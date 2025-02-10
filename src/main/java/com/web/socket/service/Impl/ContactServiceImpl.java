@@ -78,6 +78,10 @@ public class ContactServiceImpl implements ContactService {
         if (contactUsername == null || contactName == null)
             throw new BadRequestException("Username or name must not be null");
 
+        if(contactUsername.equals(username)) {
+            throw new BadRequestException("You cannot add yourself as contact");
+        }
+
         User contactUser = userRepository.findByUsername(contactUsername)
                 .orElseThrow(() -> new ResourceNotFoundException("The username doesn't exist"));
 

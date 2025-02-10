@@ -14,7 +14,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 
 @RestController
-@CrossOrigin("http://localhost:5173")
 @RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
 public class UserController {

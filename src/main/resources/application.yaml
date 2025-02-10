@@ -1,14 +1,10 @@
 spring:
   data:
     mongodb:
-      username: adminUser
-#      database: chat
-#      host: localhost
-#      port: 27017
-#      auto-index-creation: true
-#      authentication-database: admin
-      password: 1
-      uri: mongodb://adminUser:1@121.0.0.1:27017,127.0.0.1:27018,127.0.0.1:27019/chat?authSource=chat&replicaSet=rs0
+      uri: ${MONGO_URL}
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
   main:
     allow-bean-definition-overriding: true
   servlet:
@@ -36,23 +32,12 @@ aws:
   region: ${AWS_REGION}
 gemini:
   key: ${GEMINI_KEY}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+frontend:
+  url: ${FRONTEND_URL}
+server:
+  ssl:
+    key-store-type: PKCS12
+    key-store: './server-keystore.p12'
+    key-store-password: server-password
+    key-alias: server-key
+    enabled: true

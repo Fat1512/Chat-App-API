@@ -4,6 +4,7 @@ import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.mongodb.MongoDatabaseFactory;
@@ -13,6 +14,10 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @Configuration
 public class MongoConfig extends AbstractMongoClientConfiguration {
+
+    @Value(value = "${spring.data.mongodb.uri}")
+    private String connectionString;
+
 //    @Bean
 //    public MongoCustomConversions customConversions(Converter stringToObjectIdConverter) {
 //        return new MongoCustomConversions(Arrays.asList(stringToObjectIdConverter));
@@ -30,10 +35,10 @@ public class MongoConfig extends AbstractMongoClientConfiguration {
 
     @Override
     public MongoClient mongoClient() {
-        final ConnectionString connectionString =
-                new ConnectionString("mongodb://adminUser:1@121.0.0.1:27017,127.0.0.1:27018,127.0.0.1:27019/chat?authSource=chat&replicaSet=rs0");
+        final ConnectionString conn =
+                new ConnectionString(connectionString);
         final MongoClientSettings mongoClientSettings = MongoClientSettings.builder()
-                .applyConnectionString(connectionString)
+                .applyConnectionString(conn)
                 .build();
         return MongoClients.create(mongoClientSettings);
     }

@@ -9,6 +9,7 @@ import com.web.socket.service.Impl.UserServiceImpl;
 import com.web.socket.service.TokenService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
@@ -50,6 +51,8 @@ public class WebsocketConfig implements WebSocketMessageBrokerConfigurer {
     private final JwtService jwtService;
     private final TokenService tokenService;
     private final UserServiceImpl userService;
+    @Value("${frontend.url}")
+    private String frontEndUrl;
 //    private final TaskScheduler messageBrokerTaskScheduler;
 //    private final ThreadPoolTaskExecutor taskExecutor;
 
@@ -64,9 +67,9 @@ public class WebsocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("ws")//connection establishment
-                .setAllowedOrigins("http://localhost:5173");
+                .setAllowedOrigins("http://localhost:5173", frontEndUrl);
         registry.addEndpoint("ws")
-                .setAllowedOrigins("http://localhost:5173")
+                .setAllowedOrigins("http://localhost:5173", frontEndUrl)
                 .withSockJS();//connection establishment
     }
 

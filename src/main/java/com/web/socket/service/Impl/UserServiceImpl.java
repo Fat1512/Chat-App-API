@@ -33,9 +33,10 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     private final AmazonS3Service amazonS3Service;
     @Override
     public UserDetails loadUserByUsername(String username) {
-        User user = userRepository.findByUsername(username).orElseThrow(() -> new InvalidCredential("User not found"));
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new InvalidCredential("User not found"));
         if(user == null) {
-            throw new Error("user not found");
+            throw new InvalidCredential("user not found");
         }
         Collection<SimpleGrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("CUSTOMER"));
