@@ -2,10 +2,14 @@ package com.web.socket;
 
 //import com.web.socket.repository.ParentRepository;
 
+import com.web.socket.entity.ChatRoom;
+import com.web.socket.entity.MessageHistory;
 import com.web.socket.entity.test.Parent;
 import com.web.socket.entity.test.Sub;
 import com.web.socket.repository.ChildRepository;
 import com.web.socket.repository.ParentRepository;
+import com.web.socket.service.ChatRoomService;
+import com.web.socket.service.Impl.ChatRoomServiceImpl;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -16,6 +20,8 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 
 @SpringBootApplication
@@ -39,18 +45,29 @@ public class SocketApplication implements CommandLineRunner {
 	@Autowired
 	MongoTemplate mongoTemplate;
 
+
 	@Override
 	@Transactional
 	public void run(String... args) throws Exception {
 
-		Sub s = Sub.builder().name("sub").build();
-		mongoTemplate.save(s);
+//	List<MessageHistory> msg =  mongoTemplate.findAll(MessageHistory.class);
+//	msg.stream().forEach(ms -> mongoTemplate.save(ms));
+//		Sub s = Sub.builder().name("sub").build();
+//		mongoTemplate.save(s);
+//
+//		Parent p = Parent.builder()
+//				.userName("parent")
+//				.subId(s.getId())
+//				.build();
+//		mongoTemplate.save(p);
 
-		Parent p = Parent.builder()
-				.userName("parent")
-				.subId(s.getId())
-				.build();
-		mongoTemplate.save(p);
+//		List<ChatRoom> chatRooms = mongoTemplate.findAll(ChatRoom.class);
+//		List<MessageHistory> msgHistoryList =  chatRooms.stream().flatMap(chatRoom -> {
+//			chatRoom.getMessageHistory().stream().forEach(chatMessage -> chatMessage.setChatRoomId(chatRoom.getId()));
+//			return chatRoom.getMessageHistory().stream();
+//		}).toList();
+//		mongoTemplate.insertAll(msgHistoryList);
+
 //		throw new RuntimeException();
 //		Query q = new Query();
 //		q.addCriteria(Criteria.where("_id").is("67b3f90490430d0c0318ac64"));

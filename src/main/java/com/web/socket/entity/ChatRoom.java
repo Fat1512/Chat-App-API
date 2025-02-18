@@ -24,19 +24,11 @@ public class ChatRoom {
     private String groupAvatar;
 
     @Builder.Default
+    @DocumentReference
     private List<MessageHistory> messageHistory = new ArrayList<>();
 
     @Builder.Default
     @DocumentReference(lazy = true)
     private List<User> members = new ArrayList<>();
 
-    @Setter @Getter
-    @Builder
-    public static class MessageHistory {
-        @Id
-        @Builder.Default
-        private String Id = new ObjectId().toString();
-        private Double day;
-        private List<Message> messages;
-    }
 }
