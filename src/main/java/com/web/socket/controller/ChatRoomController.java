@@ -44,6 +44,7 @@ public class ChatRoomController {
 //                .build();
         return new ResponseEntity<>(null, HttpStatus.OK);
     }
+
     @GetMapping("/chatrooms/{chatRoomId}")
     public ResponseEntity<APIResponse> getChatRoomDetail(@PathVariable String chatRoomId) {
         ChatRoomDetailDTO chatRoomDetailDTO = chatRoomService.getChatRoomDetail(chatRoomId);

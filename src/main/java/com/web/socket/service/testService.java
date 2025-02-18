@@ -1,6 +1,6 @@
 package com.web.socket.service;
 
-import com.web.socket.entity.Parent;
+import com.web.socket.entity.test.Parent;
 import com.web.socket.repository.ParentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;

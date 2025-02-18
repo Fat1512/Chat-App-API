@@ -1,4 +1,5 @@
-package com.web.socket.entity;
+package com.web.socket.entity.test;
+
 
 import lombok.*;
 import org.springframework.data.annotation.Id;
@@ -7,11 +8,12 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Getter
 @Setter
 @Builder
-@Document(collection="Parent")
+@Document(collection="Sub")
 @AllArgsConstructor
 @NoArgsConstructor
-public class Parent {
+public class Sub {
+
     @Id
     private String id;
-    private String userName;
+    private String name;
 }

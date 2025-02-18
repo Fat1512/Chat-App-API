@@ -1,4 +1,4 @@
-package com.web.socket.entity;
+package com.web.socket.entity.test;
 
 
 import lombok.*;

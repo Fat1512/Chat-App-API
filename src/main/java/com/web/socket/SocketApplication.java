@@ -2,7 +2,8 @@ package com.web.socket;
 
 //import com.web.socket.repository.ParentRepository;
 
-import com.web.socket.entity.Parent;
+import com.web.socket.entity.test.Parent;
+import com.web.socket.entity.test.Sub;
 import com.web.socket.repository.ChildRepository;
 import com.web.socket.repository.ParentRepository;
 import io.github.cdimascio.dotenv.Dotenv;
@@ -11,6 +12,8 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,6 +42,22 @@ public class SocketApplication implements CommandLineRunner {
 	@Override
 	@Transactional
 	public void run(String... args) throws Exception {
+
+		Sub s = Sub.builder().name("sub").build();
+		mongoTemplate.save(s);
+
+		Parent p = Parent.builder()
+				.userName("parent")
+				.subId(s.getId())
+				.build();
+		mongoTemplate.save(p);
+//		throw new RuntimeException();
+//		Query q = new Query();
+//		q.addCriteria(Criteria.where("_id").is("67b3f90490430d0c0318ac64"));
+//
+//		Parent p = mongoTemplate.findOne(q, Parent.class);
+//		int x = 2;
+
 
 //		Parent p = Parent
 //				.builder()
