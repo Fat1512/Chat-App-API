@@ -59,18 +59,18 @@ public class JwtService {
 
     }
 
-    private String generateToken(Map<String, Object> extraClaims, UserDetails userDetails, Date expirationTime) {
+    private String generateToken(Map<String, Object> extraClaims, String username, Date expirationTime) {
         return Jwts
                 .builder()
                 .setClaims(extraClaims)
-                .setSubject(userDetails.getUsername())
+                .setSubject(username)
                 .setIssuedAt(new Date())
                 .setExpiration(expirationTime)
                 .signWith(getSignInKey())
                 .compact();
     }
 
-    public TokenDTO generateToken(UserDetails userDetails, String userKey) {
+    public TokenDTO generateToken(String username, String userKey) {
         Date now = new Date();
 
         UUID uuid = UUID.randomUUID();
@@ -82,8 +82,8 @@ public class JwtService {
         Date accessTokenExpirationTime = new Date(now.getTime() * expirationTime);
         Date refreshTokenExpirationTime = new Date(now.getTime() * refreshTime);
 
-        String refreshToken = generateToken(extraClaims, userDetails, refreshTokenExpirationTime);
-        String accessToken = generateToken(extraClaims, userDetails, accessTokenExpirationTime);
+        String refreshToken = generateToken(extraClaims, username, refreshTokenExpirationTime);
+        String accessToken = generateToken(extraClaims, username, accessTokenExpirationTime);
 
         return TokenDTO.builder()
                 .uuid(uuid.toString())

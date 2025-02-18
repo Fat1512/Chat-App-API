@@ -23,6 +23,8 @@ public class  User {
     @Field
     private String username;
     @Field
+    private String email;
+    @Field
     private String password;
     @Field
     private UserStatus status;

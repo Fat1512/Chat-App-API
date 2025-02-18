@@ -92,22 +92,22 @@ public class RestControllerException {
                 .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
                 .message(ex.getMessage())
                 .timestamp(System.currentTimeMillis())
-                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .status(HttpStatus.BAD_REQUEST.value())
                 .build();
 
-        return new ResponseEntity<>(message,HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(message,HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler
+    @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ExceptionResponse> resolveBadCredential(BadCredentialsException ex) {
         ExceptionResponse message = ExceptionResponse.builder()
                 .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
                 .message(ex.getMessage())
                 .timestamp(System.currentTimeMillis())
-                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .status(HttpStatus.BAD_REQUEST.value())
                 .build();
 
-        return new ResponseEntity<>(message,HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(message,HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler

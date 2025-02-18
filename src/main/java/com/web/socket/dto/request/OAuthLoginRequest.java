@@ -8,6 +8,8 @@ import lombok.Setter;
 @Setter
 @Getter
 @Builder
-public class RegisterRequest {
-    private String username, email, name, password, confirmedPassword;
+public class OAuthLoginRequest {
+    private String email;
+    private String name;
+    private String photo;
 }

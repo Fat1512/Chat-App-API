@@ -8,6 +8,7 @@ import com.web.socket.exception.ResourceNotFoundException;
 import com.web.socket.repository.UserRepository;
 import com.web.socket.service.UserService;
 import com.web.socket.utils.SecurityUtils;
+import com.web.socket.utils.ValidationUtils;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -32,14 +33,14 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     private final MongoTemplate mongoTemplate;
     private final AmazonS3Service amazonS3Service;
     @Override
-    public UserDetails loadUserByUsername(String username) {
-        User user = userRepository.findByUsername(username)
+    public UserDetails loadUserByUsername(String usernameOrEmail) {
+        User user = userRepository.findByUsernameOrEmail(usernameOrEmail)
                 .orElseThrow(() -> new InvalidCredential("User not found"));
         if(user == null) {
             throw new InvalidCredential("user not found");
         }
         Collection<SimpleGrantedAuthority> authorities = new ArrayList<>();
-        authorities.add(new SimpleGrantedAuthority("CUSTOMER"));
+//        authorities.add(new SimpleGrantedAuthority("CUSTOMER"));
         return new org.springframework.security.core.userdetails.User(user.getUsername(), user.getPassword(), authorities);
     }
 

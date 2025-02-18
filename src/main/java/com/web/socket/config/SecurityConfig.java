@@ -60,12 +60,13 @@ public class SecurityConfig {
                     "api/v1/auth/logout",
                     "api/v1/auth/password").authenticated();
             request.anyRequest().authenticated();
-            }).formLogin(AbstractHttpConfigurer::disable)
-                .httpBasic(AbstractHttpConfigurer::disable)
-                .exceptionHandling(exception -> {
-                    exception.authenticationEntryPoint(customAuthenticationEntryPoint);
-                    exception.accessDeniedHandler(customerAccessDeniedException);
-                });
+            })
+            .formLogin(AbstractHttpConfigurer::disable)
+            .httpBasic(AbstractHttpConfigurer::disable)
+            .exceptionHandling(exception -> {
+                exception.authenticationEntryPoint(customAuthenticationEntryPoint);
+                exception.accessDeniedHandler(customerAccessDeniedException);
+            });
         return http.build();
     }
 
@@ -81,4 +82,11 @@ public class SecurityConfig {
 //        return source;
 //    }
 }
+
+
+
+
+
+
+
 
