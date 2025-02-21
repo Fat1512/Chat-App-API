@@ -8,6 +8,7 @@ import com.web.socket.dto.MessageStatusDTO;
 import com.web.socket.dto.request.MessageRequest;
 import com.web.socket.dto.response.APIResponse;
 import com.web.socket.dto.response.MessageResponse;
+import com.web.socket.dto.response.PageResponse;
 import com.web.socket.service.ChatRoomService;
 import com.web.socket.service.MessageService;
 import com.web.socket.utils.APIResponseMessage;
@@ -64,13 +65,19 @@ public class ChatRoomController {
     public ResponseEntity<APIResponse> getChatRoomMessages(
             @PathVariable String chatRoomId,
             @RequestParam(value = "page", required = false, defaultValue = FilterUtils.PAGE) Integer page,
-            @RequestParam(value = "size", required = false, defaultValue = FilterUtils.PAGE_SIZE) Integer pageSize,
+            @RequestParam(value = "size", required = false, defaultValue = FilterUtils.PAGE_SIZE) Integer size,
             @RequestParam(value = "paddingOffset", required = false, defaultValue = FilterUtils.PADDING_OFFSET) Integer paddingOffset) {
-        List<ChatRoomDetailDTO.MessageHistoryDTO> messageHistoryDTOS = messageService.getMessages(chatRoomId, pageSize, page, paddingOffset);
+        PageResponse<ChatRoomDetailDTO.MessageHistoryDTO> pageResponse = messageService.getMessages(
+                chatRoomId,
+                size,
+                page,
+                paddingOffset
+        );
+
         APIResponse apiResponse = APIResponse.builder()
                 .status(HttpStatus.OK)
                 .message(APIResponseMessage.SUCCESSFULLY_RETRIEVED.name())
-                .data(messageHistoryDTOS)
+                .data(pageResponse)
                 .build();
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }

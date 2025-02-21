@@ -6,5 +6,10 @@ import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
-public interface MessageHistoryRepository extends MongoRepository<MessageHistory, ObjectId> {
+import java.util.List;
+import java.util.Optional;
+
+public interface MessageHistoryRepository extends MongoRepository<MessageHistory, String> {
+    Optional<MessageHistory> findByChatRoomIdAndDay(String chatRoomId, Double day);
+    List<MessageHistory> findByChatRoomId(String chatRoomId);
 }

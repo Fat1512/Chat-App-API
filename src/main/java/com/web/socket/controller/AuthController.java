@@ -46,7 +46,7 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<APIResponse> login(@RequestBody LoginRequest loginRequest) {
         UserAuthDTO userAuthDTO = authService.login(loginRequest);
-        tokenService.deleteAllExceptCurrentToken(userAuthDTO.getId(), userAuthDTO.getTokenDTO().getUuid());
+//        tokenService.deleteAllExceptCurrentToken(userAuthDTO.getId(), userAuthDTO.getTokenDTO().getUuid());
 
         //Logout all the previous logged-in session
         simpMessagingTemplate.convertAndSend(String.format("/topic/login/%s/send", userAuthDTO.getId()),

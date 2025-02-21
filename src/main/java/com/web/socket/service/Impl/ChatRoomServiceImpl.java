@@ -7,6 +7,7 @@ import com.web.socket.entity.*;
 import com.web.socket.exception.BadRequestException;
 import com.web.socket.exception.ResourceNotFoundException;
 import com.web.socket.repository.ChatRoomRepository;
+import com.web.socket.repository.MessageHistoryRepository;
 import com.web.socket.repository.UserRepository;
 import com.web.socket.service.ChatRoomService;
 import com.web.socket.service.MessageService;
@@ -31,6 +32,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -39,9 +41,12 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 
     private final ChatRoomRepository chatRoomRepository;
     private final UserRepository userRepository;
+    private final MessageHistoryRepository messageHistoryRepository;
+
     private final SimpMessagingTemplate simpMessagingTemplate;
     private final MongoTemplate mongoTemplate;
     private final MessageService messageService;
+
 
     @Override
     public List<ChatRoomSummaryDTO> getChatRoomSummary() {
@@ -164,7 +169,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
         List<ChatRoomDetailDTO.MessageHistoryDTO> messageHistoryDTOS = messageService.getMessages(chatRoomId,
                 Integer.valueOf(FilterUtils.PAGE_SIZE),
                 1,
-                0);
+                0).getContent();
 
         return ChatRoomDetailDTO
                 .builder()
@@ -191,7 +196,6 @@ public class ChatRoomServiceImpl implements ChatRoomService {
                 .noneMatch(user -> user.getId().equals(authenticatedUser.getId()))) {
             throw new BadRequestException("Not allowed to perform this action");
         }
-
 
         Message message = Message
                 .builder()
@@ -226,23 +230,28 @@ public class ChatRoomServiceImpl implements ChatRoomService {
         Double today = (double) LocalDate.now().atStartOfDay(ZoneOffset.UTC) // Start of day in UTC
                 .toInstant().toEpochMilli();
 
-        MessageHistory messageHistory = chatRoom.getMessageHistory()
-                .stream()
-                .filter(msgHistory -> msgHistory.getDay().equals(today))
-                .findFirst()
-                .orElse(null);
+        Optional<MessageHistory> messageHistoryOptional = messageHistoryRepository.findByChatRoomIdAndDay(chatRoomId, today);
 
-        if (messageHistory == null) {
+//        MessageHistory messageHistory = chatRoom.getMessageHistory()
+//                .stream()
+//                .filter(msgHistory -> msgHistory.getDay().equals(today))
+//                .findFirst()
+//                .orElse(null);
+
+        MessageHistory messageHistory;
+        if (messageHistoryOptional.isEmpty()) {
             messageHistory = MessageHistory
                     .builder()
                     .day(today)
                     .messages(List.of(message))
+                    .chatRoomId(chatRoomId)
                     .build();
-            chatRoom.getMessageHistory().add(messageHistory);
         } else {
+            messageHistory = messageHistoryOptional.get();
             messageHistory.getMessages().add(message);
         }
 
+        messageHistoryRepository.save(messageHistory);
         chatRoomRepository.save(chatRoom);
         userRepository.saveAll(remainingMembers);
 
@@ -288,8 +297,10 @@ public class ChatRoomServiceImpl implements ChatRoomService {
         authenticatedUser.getUndeliveredMessages()
                 .removeIf(undeliveredMessage -> undeliveredMessageIds.contains(undeliveredMessage.getMessageId()));
 
+        List<MessageHistory> messageHistories = messageHistoryRepository.findByChatRoomId(chatRoomId);
+
         //Remove undelivered user from chat room's messages
-        List<MessageStatusDTO> messageStatusList = chatRoom.getMessageHistory().stream()
+        List<MessageStatusDTO> messageStatusList = messageHistories.stream()
                 .flatMap(msgHistory -> msgHistory.getMessages().stream())
                 .filter(filteredMsg -> undeliveredMessageIds.contains(filteredMsg.getId())).map(msg -> {
                     msg.getUndeliveredMembers().removeIf(unreadMem -> unreadMem.getId().equals(authenticatedUser.getId()));
@@ -302,6 +313,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
                             .build();
                 }).toList();
 
+        messageHistoryRepository.saveAll(messageHistories);
         chatRoomRepository.save(chatRoom);
         userRepository.save(authenticatedUser);
         return messageStatusList;
@@ -333,8 +345,10 @@ public class ChatRoomServiceImpl implements ChatRoomService {
         authenticatedUser.getUndeliveredMessages().removeIf(undeliveredMessage -> undeliveredMessageIds
                 .contains(undeliveredMessage.getMessageId()));
 
+        List<MessageHistory> messageHistories = messageHistoryRepository.findByChatRoomId(chatRoomId);
+
         //Remove unread user from chat room's messages
-        List<MessageStatusDTO> messageStatusList = chatRoom.getMessageHistory().stream().flatMap(msgHistory -> msgHistory.getMessages().stream())
+        List<MessageStatusDTO> messageStatusList = messageHistories.stream().flatMap(msgHistory -> msgHistory.getMessages().stream())
                 .filter(filteredMsg -> unreadMessageIds.contains(filteredMsg.getId()) || undeliveredMessageIds.contains(filteredMsg.getId()))
                 .map(msg -> {
                     msg.getUndeliveredMembers().removeIf(unreadMem -> unreadMem.getId().equals(authenticatedUser.getId()));
@@ -349,6 +363,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
                             .build();
                 }).toList();
 
+        messageHistoryRepository.saveAll(messageHistories);
         chatRoomRepository.save(chatRoom);
         userRepository.save(authenticatedUser);
         return messageStatusList;

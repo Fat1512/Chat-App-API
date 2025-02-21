@@ -110,7 +110,7 @@ public class SocketController {
     }
 
     @MessageMapping("/login/{userId}/send")
-    @SendTo("/topic/login/{userId}/send")
+//    @SendTo("/topic/login/{userId}/send")
     public LoginEvent sendToken(@RequestBody LoginEvent loginEvent) {
         log.info("LoginEvent {}", loginEvent);
         return loginEvent;

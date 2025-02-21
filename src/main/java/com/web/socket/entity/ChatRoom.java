@@ -23,9 +23,9 @@ public class ChatRoom {
     private String groupName;
     private String groupAvatar;
 
-    @Builder.Default
-    @DocumentReference
-    private List<MessageHistory> messageHistory = new ArrayList<>();
+//    @Builder.Default
+//    @DocumentReference
+//    private List<MessageHistory> messageHistory = new ArrayList<>();
 
     @Builder.Default
     @DocumentReference(lazy = true)
