@@ -60,27 +60,49 @@ public class ChatRoomServiceImpl implements ChatRoomService {
         List<ObjectId> chatRoomIds = authenticatedUser.getChatRooms().stream()
                 .map(chatRoom -> new ObjectId(chatRoom.getId())).toList();
 
-        MatchOperation match = Aggregation.match(Criteria.where("chatRoomId").in(chatRoomIds));
-        UnwindOperation unwind = Aggregation.unwind("messages");
-        SortOperation sortByDay = Aggregation.sort(Sort.Direction.DESC, "messages.timeSent");
+        MatchOperation matchChatRooms = Aggregation.match(Criteria.where("_id").in(chatRoomIds));
 
-        GroupOperation group = Aggregation.group("chatRoomId")
-                .first("messages").as("latestMessage");
+        // Step 2: Perform a LEFT JOIN with messageHistory
+        LookupOperation lookupMessageHistory = LookupOperation.newLookup()
+                .from("messageHistory")
+                .localField("_id")
+                .foreignField("chatRoomId")
+                .as("messageHistory");
 
-        LookupOperation lookup = Aggregation.lookup("chatRoom", "_id", "_id", "chatRoomInfo");
+        // Step 3: Unwind messageHistory (preserve empty arrays)
+        UnwindOperation unwindMessageHistory = Aggregation.unwind("messageHistory", true);
 
-        UnwindOperation chatRoomUnwind = Aggregation.unwind("chatRoomInfo");
+        // Step 4: Unwind messages inside messageHistory (preserve empty arrays)
+        UnwindOperation unwindMessages = Aggregation.unwind("messageHistory.messages", true);
 
+        // Step 5: Sort by timeSent (descending)
+        SortOperation sortByTimeSent = Aggregation.sort(Sort.by(Sort.Direction.DESC, "messageHistory.messages.timeSent"));
+
+        // Step 6: Group by chatRoomId and get latest message
+        GroupOperation groupByChatRoom = Aggregation.group("_id")
+                .first("$$ROOT").as("chatRoomInfo")
+                .first("messageHistory.messages").as("latestMessage");
+
+        // Step 7: Remove redundant messageHistory field from chatRoomInfo
+        ProjectionOperation removeMessageHistoryField = Aggregation.project()
+                .and("_id").as("_id")
+                .and("chatRoomInfo").as("chatRoomInfo")
+                .and("latestMessage").as("latestMessage");
+
+        // Build the aggregation pipeline
         Aggregation aggregation = Aggregation.newAggregation(
-                match,
-                unwind,
-                sortByDay,
-                group,
-                lookup,
-                chatRoomUnwind
+                matchChatRooms,
+                lookupMessageHistory,
+                unwindMessageHistory,
+                unwindMessages,
+                sortByTimeSent,
+                groupByChatRoom,
+                removeMessageHistoryField
         );
 
-        List<SummaryChatRoomProjection> projections = mongoTemplate.aggregate(aggregation, "messageHistory", SummaryChatRoomProjection.class).getMappedResults();
+        List<SummaryChatRoomProjection> projections = mongoTemplate
+                .aggregate(aggregation, "chatRoom", SummaryChatRoomProjection.class).getMappedResults();
+
         return projections.stream().map(document -> {
 
             Message message = document.getLatestMessage();
@@ -374,7 +396,8 @@ public class ChatRoomServiceImpl implements ChatRoomService {
     public void broadcastOfflineStatus() {
         Authentication authentication = SecurityUtils.getAuthentication();
         String username = ((UserDetails) authentication.getPrincipal()).getUsername();
-        User authenticatedUser = userRepository.findByUsername(username).orElseThrow(() -> new BadCredentialsException("Invalid credential"));
+        User authenticatedUser = userRepository.findByUsername(username)
+                .orElseThrow(() -> new BadCredentialsException("Invalid credential"));
 
 //        authenticatedUser.setStatus(User.UserStatus.builder().online(false).lastSeen((double) Instant.now().toEpochMilli()).build());
         authenticatedUser.getStatus().setOnline(false);
@@ -396,7 +419,8 @@ public class ChatRoomServiceImpl implements ChatRoomService {
     public void broadcastOnlineStatus() {
         Authentication authentication = SecurityUtils.getAuthentication();
         String username = ((UserDetails) authentication.getPrincipal()).getUsername();
-        User authenticatedUser = userRepository.findByUsername(username).orElseThrow(() -> new BadCredentialsException("Invalid credential"));
+        User authenticatedUser = userRepository.findByUsername(username)
+                .orElseThrow(() -> new BadCredentialsException("Invalid credential"));
         authenticatedUser.getStatus().setOnline(true);
 
         mongoTemplate.save(authenticatedUser, "user");

@@ -1,5 +1,6 @@
 package com.web.socket.controller;
 
+import com.web.socket.dto.UserUpdateDTO;
 import com.web.socket.service.Impl.AmazonS3Service;
 import com.web.socket.dto.UserProfileDTO;
 import com.web.socket.dto.response.APIResponse;
@@ -26,6 +27,17 @@ public class UserController {
                 .status(HttpStatus.OK)
                 .message(APIResponseMessage.SUCCESSFULLY_RETRIEVED.name())
                 .data(userProfileDTO)
+                .build();
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+    }
+
+    @PostMapping("/update-profile")
+    public ResponseEntity<?> updateUserProfile(@RequestBody UserUpdateDTO userUpdateDTO) {
+        UserUpdateDTO userUpdateResponse = userService.updateUser(userUpdateDTO);
+        APIResponse apiResponse = APIResponse.builder()
+                .status(HttpStatus.OK)
+                .message(APIResponseMessage.SUCCESSFULLY_UPDATED.name())
+                .data(userUpdateResponse)
                 .build();
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }

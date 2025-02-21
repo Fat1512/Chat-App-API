@@ -31,4 +31,14 @@ public class ChatRoom {
     @DocumentReference(lazy = true)
     private List<User> members = new ArrayList<>();
 
+    @Override
+    public int hashCode() {
+        return this.getId().hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        ChatRoom other = (ChatRoom) obj;
+        return this.getId().equals(other.getId());
+    }
 }

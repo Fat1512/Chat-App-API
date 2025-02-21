@@ -55,7 +55,10 @@ public class SecurityConfig {
         http.cors(AbstractHttpConfigurer::disable);
 
         http.authorizeHttpRequests(request -> {
-            request.requestMatchers("/api/v1/auth/**", "/ws/**", "/api/v1/test/**").permitAll();
+            request.requestMatchers(
+                    "/api/v1/auth/**",
+                    "/ws/**",
+                    "/api/v1/test/**").permitAll();
             request.requestMatchers(
                     "api/v1/auth/logout",
                     "api/v1/auth/password").authenticated();

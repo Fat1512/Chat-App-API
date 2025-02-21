@@ -10,5 +10,6 @@ import lombok.Setter;
 @Getter
 public class ContactResponse {
     private String chatRoomId;
+    private String contactId;
     private SingleProfileDTO roomInfo;
 }

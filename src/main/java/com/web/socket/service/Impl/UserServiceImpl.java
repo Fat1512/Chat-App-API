@@ -1,14 +1,15 @@
 package com.web.socket.service.Impl;
 
 import com.web.socket.dto.UserProfileDTO;
+import com.web.socket.dto.UserUpdateDTO;
 import com.web.socket.entity.ChatRoom;
 import com.web.socket.entity.User;
 import com.web.socket.exception.InvalidCredential;
 import com.web.socket.exception.ResourceNotFoundException;
+import com.web.socket.exception.UnauthorizedException;
 import com.web.socket.repository.UserRepository;
 import com.web.socket.service.UserService;
 import com.web.socket.utils.SecurityUtils;
-import com.web.socket.utils.ValidationUtils;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -102,6 +103,30 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         authenticatedUser.setAvatar(avatarUrl);
         userRepository.save(authenticatedUser);
         return avatarUrl;
+    }
+
+    @Override
+    public UserUpdateDTO updateUser(UserUpdateDTO userUpdateDTO) {
+        Authentication authentication = SecurityUtils.getAuthentication();
+        String username = ((UserDetails) authentication.getPrincipal()).getUsername();
+        User authenticatedUser = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("user doesn't exist"));
+
+        if(!authenticatedUser.getId().equals(userUpdateDTO.getId()))
+            throw new UnauthorizedException("You are not allowed to perform this action");
+
+        authenticatedUser.setName(userUpdateDTO.getName());
+        authenticatedUser.setBio(userUpdateDTO.getBio());
+        authenticatedUser.setAvatar(userUpdateDTO.getAvt());
+        userRepository.save(authenticatedUser);
+
+        return UserUpdateDTO
+                .builder()
+                .id(authenticatedUser.getId())
+                .name(authenticatedUser.getName())
+                .bio(authenticatedUser.getBio())
+                .avt(authenticatedUser.getAvatar())
+                .build();
     }
 }
 

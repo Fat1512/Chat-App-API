@@ -1,6 +1,7 @@
 package com.web.socket.service.Impl;
 
 import com.web.socket.dto.request.ContactCreationRequest;
+import com.web.socket.dto.request.DeleteContactRequest;
 import com.web.socket.dto.response.ContactResponse;
 import com.web.socket.dto.SingleProfileDTO;
 import com.web.socket.entity.ChatRoom;
@@ -55,6 +56,7 @@ public class ContactServiceImpl implements ContactService {
                             .build();
                     return ContactResponse
                             .builder()
+                            .contactId(contact.getId())
                             .chatRoomId(contact.getChatRoom().getId())
                             .roomInfo(singleProfileDTO)
                             .build();
@@ -108,13 +110,15 @@ public class ContactServiceImpl implements ContactService {
                     .members(List.of(authenticatedUser, contactUser))
                     .build();
 
-        contactUser.getChatRooms().add(chatRoom);
-        authenticatedUser.getChatRooms().add(chatRoom);
-        authenticatedUser.getContacts().add(Contact.builder()
+        Contact contact = Contact.builder()
                 .name(contactName)
                 .user(contactUser)
                 .chatRoom(chatRoom)
-                .build());
+                .build();
+
+        contactUser.getChatRooms().add(chatRoom);
+        authenticatedUser.getChatRooms().add(chatRoom);
+        authenticatedUser.getContacts().add(contact);
 
         chatRoomRepository.save(chatRoom);
         userRepository.save(authenticatedUser);
@@ -122,6 +126,7 @@ public class ContactServiceImpl implements ContactService {
 
         return ContactResponse
                 .builder()
+                .contactId(contact.getId())
                 .chatRoomId(chatRoom.getId())
                 .roomInfo(SingleProfileDTO
                         .builder()
@@ -134,5 +139,18 @@ public class ContactServiceImpl implements ContactService {
                         .avatar(contactUser.getAvatar())
                         .build())
                 .build();
+    }
+
+    @Override
+    @Transactional
+    public void deleteContact(DeleteContactRequest deleteContactRequest) {
+        Authentication authentication = SecurityUtils.getAuthentication();
+        String username = ((UserDetails) authentication.getPrincipal()).getUsername();
+        User authenticatedUser = userRepository.findByUsername(username)
+                .orElseThrow(() -> new BadCredentialsException("Invalid credential"));
+
+        authenticatedUser.getContacts()
+                .removeIf(contact -> contact.getId().equals(deleteContactRequest.getContactId()));
+        userRepository.save(authenticatedUser);
     }
 }

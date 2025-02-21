@@ -61,11 +61,11 @@ public class MessageServiceImpl implements MessageService {
                 count
         );
 
-        Integer totalMessages = (Integer) mongoTemplate.aggregate(
-                        aggregationCount,
-                        "messageHistory",
-                        Document.class)
-                .getMappedResults().get(0).get("totalMessages");
+        Integer totalMessages = 0;
+        List<Document> resultMap = mongoTemplate.aggregate(aggregationCount,"messageHistory", Document.class).getMappedResults();
+        if(!resultMap.isEmpty()) {
+            totalMessages = (Integer) resultMap.get(0).get("totalMessages");
+        }
 
         List<MessageHistory> messageHistories = mongoTemplate.aggregate(aggregationMessage, "messageHistory", MessageHistory.class)
                 .getMappedResults();
