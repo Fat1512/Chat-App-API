@@ -8,6 +8,7 @@ import com.web.socket.entity.MessageHistory;
 import org.bson.Document;
 
 import java.util.List;
+import java.util.Map;
 
 public interface ChatRoomService {
     List<ChatRoomSummaryDTO> getChatRoomSummary() ;
@@ -16,6 +17,6 @@ public interface ChatRoomService {
     List<MessageStatusDTO> markDeliveredMessages(String chatRoomId);
     void broadcastOfflineStatus();
     void broadcastOnlineStatus();
-    void createGroup(GroupCreationDTO groupCreationDTO);
+    Map<String, Object> createGroup(GroupCreationDTO groupCreationDTO);
     ChatRoomDetailDTO getChatRoomDetailz(String chatRoomId);
 }

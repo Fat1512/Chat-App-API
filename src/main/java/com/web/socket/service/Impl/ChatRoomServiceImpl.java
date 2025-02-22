@@ -31,7 +31,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -438,27 +440,45 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 
     @Override //Haven't checked the appropriate contact list
     @Transactional
-    public void createGroup(GroupCreationDTO groupCreationDTO) {
+    public Map<String, Object> createGroup(GroupCreationDTO groupCreationDTO) {
         Authentication authentication = SecurityUtils.getAuthentication();
         String username = ((UserDetails) authentication.getPrincipal()).getUsername();
         User authenticatedUser = userRepository.findByUsername(username)
                 .orElseThrow(() -> new BadCredentialsException("Invalid credential"));
+
         groupCreationDTO.getMembersId().add(authenticatedUser.getId());
 
         List<User> members = userRepository.findByUserIds(groupCreationDTO.getMembersId());
-        ChatRoom chatroom = ChatRoom
+        ChatRoom chatRoom = ChatRoom
                 .builder()
                 .groupName(groupCreationDTO.getGroupName())
                 .groupAvatar("https://static.vecteezy.com/system/resources/thumbnails/036/280/651/small_2x/default-avatar-profile-icon-social-media-user-image-gray-avatar-icon-blank-profile-silhouette-illustration-vector.jpg")
                 .roomType(RoomType.GROUP)
                 .members(members)
                 .build();
-        chatRoomRepository.save(chatroom);
+        chatRoomRepository.save(chatRoom);
 
-        members.forEach(mem -> mem.getChatRooms().add(chatroom));
+        members.forEach(mem -> mem.getChatRooms().add(chatRoom));
         userRepository.saveAll(members);
-    }
 
+        ChatRoomSummaryDTO chatRoomSummaryDTO = ChatRoomSummaryDTO
+                .builder()
+                .chatRoomId(chatRoom.getId())
+                .roomType(chatRoom.getRoomType())
+                .totalUnreadMessages(0)
+                .lastestMessage(null)
+                .roomInfo(GroupProfileDTO
+                        .builder()
+                        .roomType("GROUP")
+                        .name(chatRoom.getGroupName())
+                        .avatar(chatRoom.getGroupAvatar())
+                        .build())
+                .build();
+        return new HashMap<>(){{
+            put("chatRoomSummaryDTO", chatRoomSummaryDTO);
+            put("memberIds", groupCreationDTO.getMembersId());
+        }};
+    }
 }
 
 

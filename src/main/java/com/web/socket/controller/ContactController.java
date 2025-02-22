@@ -51,6 +51,7 @@ public class ContactController {
     public ResponseEntity<APIResponse> createContact(@RequestBody ContactCreationRequest contactCreationRequest) {
         ContactResponse contact = contactService.createContact(contactCreationRequest);
 
+        //send to other users belonging to chat room
         simpMessagingTemplate.convertAndSend(String.format("/topic/chatRoom/%s/newChatRoom", contact.getRoomInfo().getId()),
                 ChatRoomSummaryDTO
                         .builder()

@@ -39,7 +39,7 @@ public class SocketController {
     @SendTo("/topic/chatRoom/{chatRoomId}/newMessages")
     public MessageResponse sendMessage(
             @DestinationVariable String chatRoomId,
-            @RequestBody() MessageRequest messageRequest) {
+            @RequestBody MessageRequest messageRequest) {
         MessageResponse messageResponse = chatRoomService.pushMessageToChatRoom(messageRequest, chatRoomId);
         return messageResponse;
     }
@@ -110,7 +110,7 @@ public class SocketController {
     }
 
     @MessageMapping("/login/{userId}/send")
-//    @SendTo("/topic/login/{userId}/send")
+    @SendTo("/topic/login/{userId}/send")
     public LoginEvent sendToken(@RequestBody LoginEvent loginEvent) {
         log.info("LoginEvent {}", loginEvent);
         return loginEvent;

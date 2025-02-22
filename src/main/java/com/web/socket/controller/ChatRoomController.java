@@ -1,14 +1,11 @@
 package com.web.socket.controller;
 
-
-import com.web.socket.dto.ChatRoomDetailDTO;
-import com.web.socket.dto.ChatRoomSummaryDTO;
-import com.web.socket.dto.GroupCreationDTO;
-import com.web.socket.dto.MessageStatusDTO;
+import com.web.socket.dto.*;
 import com.web.socket.dto.request.MessageRequest;
 import com.web.socket.dto.response.APIResponse;
 import com.web.socket.dto.response.MessageResponse;
 import com.web.socket.dto.response.PageResponse;
+import com.web.socket.entity.RoomType;
 import com.web.socket.service.ChatRoomService;
 import com.web.socket.service.MessageService;
 import com.web.socket.utils.APIResponseMessage;
@@ -16,9 +13,11 @@ import com.web.socket.utils.FilterUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -27,6 +26,7 @@ public class ChatRoomController {
 
     private final ChatRoomService chatRoomService;
     private final MessageService messageService;
+    private final SimpMessagingTemplate simpMessagingTemplate;
 
     @GetMapping("/chatrooms")
     public ResponseEntity<APIResponse> getChatRoomSummary() {
@@ -41,13 +41,21 @@ public class ChatRoomController {
 
     @PostMapping("/chatrooms/create-chatroom")
     public ResponseEntity<APIResponse> createChatRoom(@RequestBody GroupCreationDTO groupCreationDTO) {
-        chatRoomService.createGroup(groupCreationDTO);
-//        APIResponse apiResponse = APIResponse.builder()
-//                .status(HttpStatus.OK)
-//                .message(APIResponseMessage.SUCCESSFULLY_RETRIEVED.name())
-//                .data(chatRoomSummaryList)
-//                .build();
-        return new ResponseEntity<>(null, HttpStatus.OK);
+        Map<String, Object> groupInfo = chatRoomService.createGroup(groupCreationDTO);
+        ChatRoomSummaryDTO chatRoomSummaryDTO = (ChatRoomSummaryDTO) groupInfo.get("chatRoomSummaryDTO");
+        List<String> memberIds = (List<String>) groupInfo.get("memberIds");
+
+        memberIds.forEach(memberId -> {
+            simpMessagingTemplate.convertAndSend(String.format("/topic/chatRoom/%s/newChatRoom", memberId),
+                    chatRoomSummaryDTO);
+        });
+
+        APIResponse apiResponse = APIResponse.builder()
+                .status(HttpStatus.OK)
+                .message(APIResponseMessage.SUCCESSFULLY_RETRIEVED.name())
+                .data(chatRoomSummaryDTO)
+                .build();
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
     @GetMapping("/chatrooms/{chatRoomId}")
